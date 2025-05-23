@@ -20,8 +20,7 @@ class UserController extends Controller
         return view('user.account-details');
     }
 
-    public function updateDetails(Request $request)
-    {
+    public function updateDetails(Request $request){
             /** @var User $user */
 
         $user = Auth::user();
@@ -52,8 +51,7 @@ class UserController extends Controller
             ->with('success', 'Account details updated successfully!');
     }
 
-    public function updatePassword(Request $request)
-    {
+    public function updatePassword(Request $request){
         /** @var User $user */
         $user = Auth::user();
 
@@ -73,7 +71,6 @@ class UserController extends Controller
             ],
         ]);
 
-        // Using save() instead of update()
         $user->password = Hash::make($validatedData['new_password']);
         $user->save();
 
