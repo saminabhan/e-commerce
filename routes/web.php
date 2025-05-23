@@ -32,8 +32,11 @@ Route::delete('/wishlist/clear', [WishlistController::class, 'empty_wishlist'])-
 Route::get('/contact', [ContactController::class, 'index'])->name('home.contact');
 Route::post('/contact-submit', [ContactController::class, 'submit'])->name('contact.submit');
 
-Route::middleware(['auth'])->group(function(){
-    Route::get('/account-dashboard', [UserController::class, 'index'])->name('user.index');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/account', [UserController::class, 'index'])->name('user.index');
+    Route::get('/account/details', [UserController::class, 'details'])->name('user.details');
+    Route::put('/account/details/update', [UserController::class, 'updateDetails'])->name('user.update.details');
+    Route::put('/account/password/update', [UserController::class, 'updatePassword'])->name('user.update.password');
 });
 
 Route::middleware(['auth', AuthAdmin::class])->group(function(){
