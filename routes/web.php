@@ -62,5 +62,9 @@ Route::middleware(['auth', AuthAdmin::class])->group(function(){
     Route::put('/admin/product/update', [AdminController::class, 'product_update'])->name('admin.product.update');
     Route::delete('/admin/product/{id}/delete', [AdminController::class, 'product_delete'])->name('admin.product.delete');
 
+    Route::get('/admin/settings', [AdminController::class, 'settings'])->name('admin.settings');
+    Route::put('/admin/settings/account/details/update', [AdminController::class, 'updateDetails'])->name('admin.update.details');
+    Route::put('/admin/settings/account/password/update', [AdminController::class, 'updatePassword'])->name('admin.update.password');
+
 
 });

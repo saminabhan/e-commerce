@@ -7,9 +7,13 @@ use App\Models\Category;
 use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
 use Intervention\Image\Laravel\Facades\Image;
+use Illuminate\Validation\Rule;
+
 
 class AdminController extends Controller
 {
@@ -369,5 +373,67 @@ class AdminController extends Controller
 
         $product->delete();
         return redirect()->route('admin.products')->with('status','Product has been deleted successfully!');
+    }
+
+    public function settings()
+    {
+        return view('admin.settings');
+    }
+
+    public function updateDetails(Request $request){
+        /** @var User $user */
+
+    $user = Auth::user();
+
+    $validatedData = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => [
+            'required',
+            'string',
+            'email',
+            'max:255',
+            Rule::unique('users')->ignore($user->id),
+        ],
+        'mobile' => [
+            'required',
+            'string',
+            'max:20',
+            Rule::unique('users')->ignore($user->id),
+        ],
+    ], [
+        'email.unique' => 'This email address is already registered with another account.',
+        'mobile.unique' => 'This mobile number is already registered with another account.',
+    ]);
+
+    $user->update($validatedData);
+
+    return redirect()->route('admin.settings')->with('status', 'Details updated successfully!');
+
+    }
+
+    public function updatePassword(Request $request){
+        /** @var User $user */
+        $user = Auth::user();
+
+        $validatedData = $request->validate([
+            'old_password' => [
+                'required',
+                function ($attribute, $value, $fail) use ($user) {
+                    if (!Hash::check($value, $user->password)) {
+                        $fail('The current password is incorrect.');
+                    }
+                },
+            ],
+            'new_password' => [
+                'required',
+                'confirmed',
+                'min:8',
+            ],
+        ]);
+
+        $user->password = Hash::make($validatedData['new_password']);
+        $user->save();
+
+    return redirect()->route('admin.settings')->with('status', 'Password updated successfully!');
     }
 }

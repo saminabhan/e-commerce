@@ -879,7 +879,7 @@ h6, .h6 {
 }
 
 .tf-color {
-  color: var(--Main) !important;
+  color: #4062B1 !important;
 }
 
 .tf-color-1 {
@@ -924,7 +924,7 @@ a {
   transition: all 0.3s ease;
 }
 a:hover, a:focus {
-  color: var(--Main);
+  color: #4062B1;
   text-decoration: none;
   outline: 0;
   -webkit-transition: all 0.3s ease;
@@ -1179,7 +1179,7 @@ a:hover, a:focus {
 }
 .wg-chart-default .image i {
   font-size: 22px;
-  color: var(--Main);
+  color: #4062B1;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -1226,7 +1226,7 @@ a:hover, a:focus {
 }
 .title-box i {
   font-size: 18px;
-  color: var(--Main);
+  color: #4062B1;
 }
 
 .product-item {
@@ -1281,7 +1281,7 @@ a:hover, a:focus {
   line-height: 17px;
 }
 .product-item .name a:hover {
-  color: var(--Main) !important;
+  color: #4062B1 !important;
 }
 .product-item .text-tiny {
   line-height: 20px;
@@ -1314,7 +1314,7 @@ a:hover, a:focus {
   color: var(--Heading);
 }
 .country-item .name:hover {
-  color: var(--Main);
+  color: #4062B1;
 }
 .country-item .number {
   min-width: 57px;
@@ -1346,10 +1346,10 @@ a:hover, a:focus {
   border-radius: 50%;
 }
 .shop-item a:hover {
-  color: var(--Main) !important;
+  color: #4062B1 !important;
 }
 .shop-item .name:hover {
-  color: var(--Main);
+  color: #4062B1;
 }
 
 .progress-level-bar {
@@ -1578,7 +1578,7 @@ a:hover, a:focus {
   transition: all 0.3s ease;
 }
 .wg-pagination li:hover a, .wg-pagination li.active a {
-  background: var(--Main);
+  background: #4062B1;
   color: #fff !important;
 }
 .wg-pagination li:hover i, .wg-pagination li.active i {
@@ -1607,7 +1607,7 @@ a:hover, a:focus {
   border-radius: 50%;
 }
 .comment-item a:hover {
-  color: var(--Main);
+  color: #4062B1;
 }
 .comment-item .text-tiny {
   color: var(--Body-Text);
@@ -1674,7 +1674,7 @@ a:hover, a:focus {
   background-color: #F2F7FF;
 }
 .block-legend .dot-1.t2 {
-  background-color: var(--Main);
+  background-color: #4062B1;
 }
 .block-legend.style-1 .dot {
   width: 16px;
@@ -1685,7 +1685,7 @@ a:hover, a:focus {
   border: 4px solid #22C55E;
 }
 .block-legend.style-1 .dot.t2 {
-  border: 4px solid var(--Main);
+  border: 4px solid #4062B1;
 }
 .block-legend.style-1 .dot.t3 {
   border: 4px solid #8F77F3;
@@ -1708,7 +1708,7 @@ a:hover, a:focus {
   height: 6px;
   flex-shrink: 0;
   border-radius: 99px;
-  background: var(--Main);
+  background: #4062B1;
 }
 .customer-price-item .line.line-2 {
   background: #D3E4FE;
@@ -1740,7 +1740,7 @@ a:hover, a:focus {
   transition: all 0.3s ease;
 }
 .breadcrumbs a:hover .text-tiny {
-  color: var(--Main);
+  color: #4062B1;
 }
 .breadcrumbs i {
   font-size: 14px;
@@ -1772,7 +1772,7 @@ a:hover, a:focus {
 }
 .upload-image .item.up-load {
   min-height: 208px;
-  border: 1px dashed var(--Main);
+  border: 1px dashed #4062B1;
 }
 .upload-image .uploadfile {
   text-align: center;
@@ -1792,7 +1792,7 @@ a:hover, a:focus {
 }
 .upload-image .uploadfile .icon {
   font-size: 40px;
-  color: var(--Main);
+  color: #4062B1;
 }
 .upload-image .uploadfile .text-tiny {
   width: 100%;
@@ -2005,7 +2005,7 @@ a:hover, a:focus {
   color: var(--Note);
 }
 .road-map .road-map-item.active .icon {
-  background: var(--Main);
+  background: #4062B1;
 }
 .road-map .road-map-item.active .body-text {
   color: var(--Body-Text);
@@ -2014,7 +2014,7 @@ a:hover, a:focus {
   color: var(--Heading);
 }
 .road-map .road-map-item.active:before {
-  background-color: var(--Main);
+  background-color: #4062B1;
 }
 
 .user-item {
@@ -2053,7 +2053,7 @@ a:hover, a:focus {
   line-height: 17px;
 }
 .user-item .name a:hover {
-  color: var(--Main) !important;
+  color: #4062B1 !important;
 }
 .user-item .text-tiny {
   line-height: 20px;
@@ -2239,7 +2239,7 @@ a:hover, a:focus {
 }
 .box-coppy i {
   font-size: 20px;
-  color: var(--Main);
+  color: #4062B1;
   cursor: pointer;
 }
 .box-coppy .coppy-content {
@@ -2371,7 +2371,7 @@ a:hover, a:focus {
   color: #BCC6D1;
 }
 .wg-social li:hover a, .wg-social li.active a {
-  color: var(--Main);
+  color: #4062B1;
 }
 
 .select-colors-theme {
@@ -2565,7 +2565,7 @@ a:hover, a:focus {
   content: "";
   display: block;
   border-radius: 50%;
-  border: 4px solid var(--Main);
+  border: 4px solid #4062B1;
   position: absolute;
   top: 0;
   left: 0;
@@ -2826,9 +2826,9 @@ a:hover, a:focus {
   font-size: 14px;
   font-weight: 700;
   line-height: 20px;
-  border: 1px solid var(--Main);
+  border: 1px solid #4062B1;
   border-radius: 12px;
-  background-color: var(--Main);
+  background-color: #4062B1;
   background-size: 100%;
   overflow: hidden;
   -webkit-transition: all 0.3s ease;
@@ -2837,8 +2837,12 @@ a:hover, a:focus {
   -o-transition: all 0.3s ease;
   transition: all 0.3s ease;
 }
+.tf-button{
+  background-color: #4062B1;
+  border-color: #4062B1;
+}
 .tf-button:hover {
-  color: var(--Main);
+  color: #4062B1;
   background-color: #FFF;
 }
 .tf-button:hover span {
@@ -2848,12 +2852,12 @@ a:hover, a:focus {
   font-size: 20px;
 }
 .tf-button.style-1 {
-  color: var(--Main);
+  color: #4062B1;
   background-color: var(--White);
 }
 .tf-button.style-1:hover {
   color: #FFF;
-  background-color: var(--Main);
+  background-color: #4062B1;
 }
 .tf-button.style-2 {
   color: #575864;
@@ -2862,7 +2866,7 @@ a:hover, a:focus {
 }
 .tf-button.style-2:hover {
   color: #FFF;
-  background-color: var(--Main);
+  background-color: #4062B1;
 }
 .tf-button.w208 {
   width: 208px;
@@ -2940,7 +2944,7 @@ form.form-search .button-submit button i {
   transition: all 0.3s ease;
 }
 form.form-search .button-submit button:hover i {
-  color: var(--Main);
+  color: #4062B1;
 }
 form.form-style-1 {
   display: -webkit-box;
@@ -3227,7 +3231,7 @@ select.h40 {
   color: var(--Style);
 }
 .layout-wrap .section-content-right .main-content .bottom-page a {
-  color: var(--Main);
+  color: #4062B1;
 }
 .layout-wrap .section-content-right .main-content .bottom-page a:hover {
   color: var(--Style);
@@ -3370,7 +3374,7 @@ select.h40 {
   border: 1px solid rgba(35, 119, 252, 0.1);
   background: #E9F2FF;
   font-size: 20px;
-  color: var(--Main);
+  color: #4062B1;
 }
 
 .jvectormap-zoomin {
@@ -3672,10 +3676,10 @@ select.h40 {
 .layout-wrap .section-menu-left > .center .center-item .menu-list .menu-item a.active .text, .layout-wrap .section-menu-left > .center .center-item .menu-list .menu-item a:hover::after,
 .layout-wrap .section-menu-left > .center .center-item .menu-list .menu-item a:hover i,
 .layout-wrap .section-menu-left > .center .center-item .menu-list .menu-item a:hover .text {
-  color: var(--Main) !important;
+  color: #4062B1 !important;
 }
 .layout-wrap .section-menu-left > .center .center-item .menu-list .menu-item a.active svg path, .layout-wrap .section-menu-left > .center .center-item .menu-list .menu-item a:hover svg path {
-  stroke: var(--Main) !important;
+  stroke: #4062B1 !important;
 }
 .layout-wrap .section-menu-left > .center .center-item .menu-list .menu-item.has-children {
   position: relative;
@@ -3728,7 +3732,7 @@ select.h40 {
   transform: rotate(45deg);
 }
 .layout-wrap .section-menu-left > .center .center-item .menu-list .menu-item.has-children .sub-menu a.active::before {
-  border-color: var(--Main);
+  border-color: #4062B1;
 }
 .layout-wrap .section-menu-left > .center .center-item .menu-list .menu-item.has-children.active > a {
   border-radius: 12px;
@@ -3736,7 +3740,7 @@ select.h40 {
 }
 .layout-wrap .section-menu-left > .center .center-item .menu-list .menu-item.has-children.active > a i,
 .layout-wrap .section-menu-left > .center .center-item .menu-list .menu-item.has-children.active > a .text {
-  color: var(--Main);
+  color: #4062B1;
 }
 .layout-wrap .section-menu-left > .center .center-item .menu-list .menu-item.has-children.active > a::after {
   position: absolute;
@@ -3745,13 +3749,13 @@ select.h40 {
   left: -24px;
   width: 8px;
   height: 34px;
-  background-color: var(--Main);
+  background-color: #4062B1;
   border-radius: 8px;
 }
 .layout-wrap .section-menu-left > .center .center-item .menu-list .menu-item.has-children.active::after {
   top: 14px;
   transform: rotate(180deg);
-  color: var(--Main);
+  color: #4062B1;
 }
 .layout-wrap .section-menu-left > .center .center-item .menu-list .menu-item.has-children.active > .sub-menu {
   display: block;
@@ -3782,7 +3786,7 @@ select.h40 {
   transition: all 0.3s ease;
 }
 .layout-wrap .section-menu-left .button-show-hide:hover i {
-  color: var(--Main);
+  color: #4062B1;
 }
 .layout-wrap .section-menu-left .bot {
   width: 100%;
@@ -3819,7 +3823,7 @@ select.h40 {
   display: block;
 }
 .layout-wrap.full-width .header-dashboard .button-show-hide i {
-  color: var(--Main);
+  color: #4062B1;
 }
 
 .widget-tabs .widget-menu-tab {
@@ -3841,7 +3845,7 @@ select.h40 {
   color: var(--Note);
 }
 .widget-tabs .widget-menu-tab li.active * {
-  color: var(--Main);
+  color: #4062B1;
 }
 .widget-tabs .widget-menu-tab li.active::after {
   position: absolute;
@@ -3850,7 +3854,7 @@ select.h40 {
   height: 1px;
   left: 0;
   bottom: -15px;
-  background-color: var(--Main);
+  background-color: #4062B1;
 }
 .widget-tabs .widget-menu-tab.style-1 {
   padding: 8px;
@@ -4072,7 +4076,7 @@ select.h40 {
   transition: all 0.3s ease;
 }
 .popup-wrap.apps .dropdown-menu.show .list-apps .item a:hover .text-tiny {
-  color: var(--Main);
+  color: #4062B1;
 }
 .popup-wrap.user .dropdown-menu.show {
   width: 188px;
@@ -4126,10 +4130,10 @@ select.h40 {
   line-height: 12px;
 }
 .popup-wrap.user .dropdown-menu.show .user-item:hover .body-title-2 {
-  color: var(--Main);
+  color: #4062B1;
 }
 .popup-wrap.user .dropdown-menu.show .user-item:hover .icon i {
-  color: var(--Main);
+  color: #4062B1;
 }
 .popup-wrap.message {
   position: relative;
@@ -4154,7 +4158,7 @@ select.h40 {
   font-weight: 500;
   line-height: 17px;
   border-radius: 999px;
-  background: #2275fc;
+  background: #4062B1;
   color: #fff;
 }
 .popup-wrap.message > .dropdown .header-item > .text-tiny::after {
@@ -4203,7 +4207,7 @@ select.h40 {
   background: #E9F2FF;
 }
 .popup-wrap.message .dropdown-menu.show .message-item.item-1 .image i {
-  color: var(--Main);
+  color: #4062B1;
 }
 .popup-wrap.message .dropdown-menu.show .message-item.item-2 .image {
   background: #F4E9FF;
@@ -4254,7 +4258,7 @@ select.h40 {
   padding: 8px 16px;
 }
 .dropdown.default > .dropdown-menu a:hover {
-  color: var(--Main);
+  color: #4062B1;
 }
 .dropdown.default.style-box > .dropdown-toggle a {
   display: -webkit-box;
@@ -4316,7 +4320,7 @@ select.h40 {
   color: var(--Heading);
 }
 .wg-table.table-best-shop-sellers .shop-item a:hover {
-  color: var(--Main);
+  color: #4062B1;
 }
 .wg-table.table-product-overview > * {
   min-width: 921px;
