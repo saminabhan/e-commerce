@@ -486,8 +486,12 @@
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
               <use href="#icon_heart" />
             </svg>
-            @if (Cart::instance('wishlist')->content()->count() > 0)
-            <span class="cart-amount d-block position-absolute js-cart-items-count">{{Cart::instance('wishlist')->content()->count()}}</span>
+            @php
+                $wishlistCount = \App\Models\Wishlist::where('user_id', Auth::id())->count();
+            @endphp
+
+            @if ($wishlistCount > 0)
+                <span class="cart-amount d-block position-absolute js-cart-items-count">{{ $wishlistCount }}</span>
             @endif
           </a>
 
@@ -496,8 +500,12 @@
               xmlns="http://www.w3.org/2000/svg">
               <use href="#icon_cart" />
             </svg>
-            @if (Cart::instance('cart')->content()->count() > 0)
-            <span class="cart-amount d-block position-absolute js-cart-items-count">{{Cart::instance('cart')->content()->count()}}</span>
+            @php
+                $cartCount = \App\Models\Cart::where('user_id', Auth::id())->count();
+            @endphp
+
+            @if ($cartCount > 0)
+                <span class="cart-amount d-block position-absolute js-cart-items-count">{{ $cartCount }}</span>
             @endif
           </a>
         </div>
