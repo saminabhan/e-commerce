@@ -237,17 +237,31 @@
                       <use href="#icon_next_sm" />
                     </svg></span>
                 </div>
-                @if (Cart::instance('cart')->content()->where('id',$product->id)->count() > 0)
-                <a href="{{ route('cart.index') }}" class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium btn-warning mb-3">Go to Cart</a>
+                  @php
+                    $inCart = false;
+                    if (auth()->check()) {
+                        $inCart = \App\Models\Cart::where('user_id', auth()->id())
+                                  ->where('product_id', $product->id)
+                                  ->exists();
+                    }
+                @endphp
+
+                @if ($inCart)
+                    <a href="{{ route('cart.index') }}" 
+                      class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium btn-warning mb-3">
+                        Go to Cart
+                    </a>
                 @else
-                <form name="addtocart-form" method="post" action="{{route('cart.add')}}">
-                @csrf
-                  <input type="hidden" name="id" value="{{ $product->id }}">    
-                  <input type="hidden" name="name" value="{{ $product->name }}">    
-                  <input type="hidden" name="quantity" value="1">    
-                  <input type="hidden" name="price" value="{{ $product->sale_price == '' ? $product->regular_price : $product->sale_price }}">
-                  <button type="submit" class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium" data-aside="cartDrawer" title="Add To Cart">Add To Cart</button>
-                </form>
+                    <form name="addtocart-form" method="post" action="{{ route('cart.add') }}">
+                        @csrf
+                        <input type="hidden" name="id" value="{{ $product->id }}">
+                        <input type="hidden" name="name" value="{{ $product->name }}">
+                        <input type="hidden" name="quantity" value="1">
+                        <input type="hidden" name="price" value="{{ $product->sale_price ?: $product->regular_price }}">
+                        <button type="submit" class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium" data-aside="cartDrawer" title="Add To Cart">
+                            Add To Cart
+                        </button>
+                    </form>
                 @endif
               </div>
               <div class="pc__info position-relative">
@@ -283,33 +297,29 @@
                   <span class="reviews-note text-lowercase text-secondary ms-1">8k+ reviews</span>
                 </div>
 
-                @if (Cart::instance('wishlist')->content()->where('id',$product->id)->count() > 0)
-                <form method="POST" action="{{route('wishlist.item.remove',['rowId'=>Cart::instance('wishlist')->content()->where('id',$product->id)->first()->rowId])}}">
-                  @csrf
-                  @method('DELETE')
-                <button type="submit" class="pc__btn-wl position-absolute top-0 end-0 bg-transparent border-0 js-add-wishlist filled-heart"
-                  title="Remove From Wishlist">
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <use href="#icon_heart" />
-                  </svg>
-                </button>
-                </form>
-                @else
-                <form method="POST" action="{{route('wishlist.add')}}">
-                @csrf
-                <input type="hidden" name="id" value="{{$product->id}}">
-                <input type="hidden" name="name" value="{{$product->name}}">
-                <input type="hidden" name="price" value="{{$product->sale_price == '' ? $product->regular_price : $product->sale_price}}">
-                <input type="hidden" name="quantity" value="1">
+                @php
+                  $wishlistItem = null;
+                  if (auth()->check()) {
+                      $wishlistItem = \App\Models\Wishlist::where('user_id', auth()->id())
+                                      ->where('product_id', $product->id)
+                                      ->first();
+                  }
+              @endphp
 
-                <button type="submit" class="pc__btn-wl position-absolute top-0 end-0 bg-transparent border-0 js-add-wishlist"
-                  title="Add To Wishlist">
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <use href="#icon_heart" />
+              <button 
+                  class="wishlist-btn position-absolute top-0 end-0 bg-transparent border-0 js-wishlist-toggle {{ $wishlistItem ? 'filled' : '' }}" 
+                  data-product-id="{{ $product->id }}"
+                  data-name="{{ $product->name }}"
+                  data-price="{{ $product->sale_price ?: $product->regular_price }}"
+                  data-action="{{ $wishlistItem ? 'remove' : 'add' }}"
+                  data-row-id="{{ $wishlistItem->id ?? '' }}"
+                  title="{{ $wishlistItem ? 'Remove from Wishlist' : 'Add to Wishlist' }}"
+              >
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                      <use href="#icon_heart" />
                   </svg>
-                </button>
-                </form>
-                @endif
+              </button>
+
               </div>
                             </div>
                         @endforeach
@@ -352,18 +362,32 @@
                       <use href="#icon_next_sm" />
                     </svg></span>
                 </div>
-                @if (Cart::instance('cart')->content()->where('id',$product->id)->count() > 0)
-                <a href="{{ route('cart.index') }}" class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium btn-warning mb-3">Go to Cart</a>
-                @else
-                <form name="addtocart-form" method="post" action="{{route('cart.add')}}">
-                @csrf
-                  <input type="hidden" name="id" value="{{ $product->id }}">    
-                  <input type="hidden" name="name" value="{{ $product->name }}">    
-                  <input type="hidden" name="quantity" value="1">    
-                  <input type="hidden" name="price" value="{{ $product->sale_price == '' ? $product->regular_price : $product->sale_price }}">
-                  <button type="submit" class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium" data-aside="cartDrawer" title="Add To Cart">Add To Cart</button>
-                </form>
-                @endif
+                        @php
+                          $inCart = false;
+                          if (auth()->check()) {
+                              $inCart = \App\Models\Cart::where('user_id', auth()->id())
+                                        ->where('product_id', $product->id)
+                                        ->exists();
+                          }
+                      @endphp
+
+                      @if ($inCart)
+                          <a href="{{ route('cart.index') }}" 
+                            class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium btn-warning mb-3">
+                              Go to Cart
+                          </a>
+                      @else
+                  <form name="addtocart-form" method="post" action="{{ route('cart.add') }}">
+                      @csrf
+                      <input type="hidden" name="id" value="{{ $product->id }}">
+                      <input type="hidden" name="name" value="{{ $product->name }}">
+                      <input type="hidden" name="quantity" value="1">
+                      <input type="hidden" name="price" value="{{ $product->sale_price ?: $product->regular_price }}">
+                      <button type="submit" class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium" data-aside="cartDrawer" title="Add To Cart">
+                          Add To Cart
+                      </button>
+                  </form>
+              @endif
               </div>
 
               <div class="pc__info position-relative">
@@ -399,33 +423,29 @@
                   <span class="reviews-note text-lowercase text-secondary ms-1">8k+ reviews</span>
                 </div>
 
-                @if (Cart::instance('wishlist')->content()->where('id',$product->id)->count() > 0)
-                <form method="POST" action="{{route('wishlist.item.remove',['rowId'=>Cart::instance('wishlist')->content()->where('id',$product->id)->first()->rowId])}}">
-                  @csrf
-                  @method('DELETE')
-                <button type="submit" class="pc__btn-wl position-absolute top-0 end-0 bg-transparent border-0 js-add-wishlist filled-heart"
-                  title="Remove From Wishlist">
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <use href="#icon_heart" />
-                  </svg>
-                </button>
-                </form>
-                @else
-                <form method="POST" action="{{route('wishlist.add')}}">
-                @csrf
-                <input type="hidden" name="id" value="{{$product->id}}">
-                <input type="hidden" name="name" value="{{$product->name}}">
-                <input type="hidden" name="price" value="{{$product->sale_price == '' ? $product->regular_price : $product->sale_price}}">
-                <input type="hidden" name="quantity" value="1">
+               @php
+                  $wishlistItem = null;
+                  if (auth()->check()) {
+                      $wishlistItem = \App\Models\Wishlist::where('user_id', auth()->id())
+                                      ->where('product_id', $product->id)
+                                      ->first();
+                  }
+              @endphp
 
-                <button type="submit" class="pc__btn-wl position-absolute top-0 end-0 bg-transparent border-0 js-add-wishlist"
-                  title="Add To Wishlist">
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <use href="#icon_heart" />
+              <button 
+                  class="wishlist-btn position-absolute top-0 end-0 bg-transparent border-0 js-wishlist-toggle {{ $wishlistItem ? 'filled' : '' }}" 
+                  data-product-id="{{ $product->id }}"
+                  data-name="{{ $product->name }}"
+                  data-price="{{ $product->sale_price ?: $product->regular_price }}"
+                  data-action="{{ $wishlistItem ? 'remove' : 'add' }}"
+                  data-row-id="{{ $wishlistItem->id ?? '' }}"
+                  title="{{ $wishlistItem ? 'Remove from Wishlist' : 'Add to Wishlist' }}"
+              >
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                      <use href="#icon_heart" />
                   </svg>
-                </button>
-                </form>
-                @endif
+              </button>
+
               </div>
             </div>
         </div>
@@ -443,3 +463,75 @@
 
 </main>
 @endsection
+
+@push('scripts')
+  <script>
+document.addEventListener('DOMContentLoaded', function () {
+    const token = document.querySelector('meta[name="csrf-token"]').content;
+
+    document.querySelectorAll('.js-wishlist-toggle').forEach(button => {
+        button.addEventListener('click', async function () {
+            const id = this.dataset.productId;
+            const name = this.dataset.name;
+            const price = this.dataset.price;
+            const action = this.dataset.action;
+            const rowId = this.dataset.rowId;
+
+            const route = action === 'add'
+                ? '{{ route("wishlist.add") }}'
+                : `/wishlist/remove/${rowId}`;
+
+            const method = action === 'add' ? 'POST' : 'DELETE';
+
+            const body = action === 'add'
+                ? JSON.stringify({ id, name, price, quantity: 1 })
+                : null;
+
+            try {
+                const response = await fetch(route, {
+                    method,
+                    headers: {
+                        'X-CSRF-TOKEN': token,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body
+                });
+
+                if (response.ok) {
+                    this.classList.toggle('filled');
+                    this.dataset.action = action === 'add' ? 'remove' : 'add';
+
+                    if (action === 'add') {
+                        const result = await response.json();
+                        this.dataset.rowId = result.id ?? ''; 
+                        showToast('Added to Wishlist');
+                    } else {
+                        this.dataset.rowId = '';
+                        showToast('Removed from Wishlist');
+                    }
+                } else {
+                    showToast('Something went wrong', true);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Network error', true);
+            }
+        });
+    });
+
+    // Toast alert
+    function showToast(message, isError = false) {
+        const toast = document.createElement('div');
+        toast.innerText = message;
+        toast.className = `wishlist-toast ${isError ? 'error' : 'success'}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 100);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 2000);
+    }
+});
+</script>
+@endpush

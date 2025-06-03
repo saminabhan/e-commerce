@@ -486,13 +486,20 @@
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
               <use href="#icon_heart" />
             </svg>
-            @php
-                $wishlistCount = \App\Models\Wishlist::where('user_id', Auth::id())->count();
-            @endphp
+           @php
+    $wishlistCount = \App\Models\Wishlist::where('user_id', Auth::id())->count();
+@endphp
 
-            @if ($wishlistCount > 0)
-                <span class="cart-amount d-block position-absolute js-cart-items-count">{{ $wishlistCount }}</span>
-            @endif
+@if ($wishlistCount > 0)
+    <span id="wishlist-count" class="cart-amount d-block position-absolute js-cart-items-count">
+        {{ $wishlistCount }}
+    </span>
+@else
+    <span id="wishlist-count" class="cart-amount d-block position-absolute js-cart-items-count" style="display:none;">
+        0
+    </span>
+@endif
+
           </a>
 
           <a href="{{ route('cart.index') }}" class="header-tools__item header-tools__cart">
@@ -680,6 +687,71 @@
   <script src="{{ asset('assets/js/plugins/swiper.min.js') }}"></script>
   <script src="{{ asset('assets/js/plugins/countdown.js') }}"></script>
   <script src="{{ asset('assets/js/theme.js') }}"></script>
+  <script>
+document.addEventListener('DOMContentLoaded', function () {
+    const buttons = document.querySelectorAll('.js-wishlist-toggle');
+
+    buttons.forEach(button => {
+        button.addEventListener('click', async function (e) {
+            e.preventDefault();
+
+            const btn = e.currentTarget;
+            const productId = btn.dataset.productId;
+            const name = btn.dataset.name;
+            const price = btn.dataset.price;
+            const rowId = btn.dataset.rowId;
+            const action = btn.dataset.action;
+
+            const url = action === 'add'
+                ? "{{ route('wishlist.add') }}"
+                : `/wishlist/remove/${rowId}`;
+
+            const method = action === 'add' ? 'POST' : 'DELETE';
+
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: action === 'add'
+                        ? JSON.stringify({ id: productId, name, price, quantity: 1 })
+                        : null
+                });
+
+                if (!res.ok) throw new Error("Request failed");
+
+                const result = await res.json();
+
+                if (action === 'add') {
+                    btn.classList.add('filled');
+                    btn.dataset.action = 'remove';
+                    btn.dataset.rowId = result.rowId;
+                    btn.title = 'Remove from Wishlist';
+                } else {
+                    btn.classList.remove('filled');
+                    btn.dataset.action = 'add';
+                    btn.dataset.rowId = '';
+                    btn.title = 'Add to Wishlist';
+                }
+
+                const countSpan = document.querySelector('#wishlist-count');
+                if (countSpan) {
+                    countSpan.textContent = result.wishlistCount;
+                    countSpan.style.display = result.wishlistCount > 0 ? 'inline-block' : 'none';
+                }
+
+            } catch (err) {
+                console.error(err);
+                alert("Something went wrong.");
+            }
+        });
+    });
+});
+</script>
+
   @stack('scripts')
 </body>
 </html>
