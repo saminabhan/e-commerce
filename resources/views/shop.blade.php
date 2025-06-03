@@ -560,6 +560,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (response.ok) {
                     const result = await response.json();
 
+                    // التعامل مع الحالة بناءً على نوع الإجراء
                     if (action === 'add') {
                         this.classList.add('filled');
                         this.dataset.action = 'remove';
@@ -574,6 +575,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         showToast('Removed from Wishlist');
                     }
 
+                    // تحديث عدد العناصر في الويشليست
                     const countSpan = document.querySelector('#wishlist-count');
                     if (countSpan) {
                         countSpan.textContent = result.wishlistCount;
@@ -603,5 +605,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+
 
 @endpush
