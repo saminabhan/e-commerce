@@ -465,7 +465,7 @@
 @endsection
 
 @push('scripts')
-  <script>
+ <script>
 document.addEventListener('DOMContentLoaded', function () {
     const token = document.querySelector('meta[name="csrf-token"]').content;
 
@@ -499,16 +499,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 if (response.ok) {
-                    this.classList.toggle('filled');
-                    this.dataset.action = action === 'add' ? 'remove' : 'add';
+                    const result = await response.json();
 
                     if (action === 'add') {
-                        const result = await response.json();
-                        this.dataset.rowId = result.id ?? ''; 
+                        this.classList.add('filled');
+                        this.dataset.action = 'remove';
+                        this.dataset.rowId = result.id ?? '';
+                        this.title = 'Remove from Wishlist';
                         showToast('Added to Wishlist');
                     } else {
+                        this.classList.remove('filled');
+                        this.dataset.action = 'add';
                         this.dataset.rowId = '';
+                        this.title = 'Add to Wishlist';
                         showToast('Removed from Wishlist');
+                    }
+
+                    const countSpan = document.querySelector('#wishlist-count');
+                    if (countSpan) {
+                        countSpan.textContent = result.wishlistCount;
+                        countSpan.style.display = result.wishlistCount > 0 ? 'inline-block' : 'none';
                     }
                 } else {
                     showToast('Something went wrong', true);
@@ -520,7 +530,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Toast alert
     function showToast(message, isError = false) {
         const toast = document.createElement('div');
         toast.innerText = message;
