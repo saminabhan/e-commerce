@@ -394,7 +394,8 @@
                                       ->first();
                   }
               @endphp
-
+              
+              @if (auth()->check())
               <button 
                   class="wishlist-btn position-absolute top-0 end-0 bg-transparent border-0 js-wishlist-toggle {{ $wishlistItem ? 'filled' : '' }}" 
                   data-product-id="{{ $product->id }}"
@@ -408,6 +409,16 @@
                       <use href="#icon_heart" />
                   </svg>
               </button>
+              @else
+                  <a href="{{ route('login') }}"
+                      class="wishlist-btn position-absolute top-0 end-0 bg-transparent border-0"
+                      title="Please login to add to wishlist"
+                  >
+                      <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                          <use href="#icon_heart" />
+                      </svg>
+                  </a>
+              @endif
 
               </div>
             </div>
