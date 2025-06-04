@@ -138,29 +138,54 @@
             </div>
           </form>
           @endif
-          <div class="product-single__addtolinks">
-            @if (Cart::instance('wishlist')->content()->where('id',$product->id)->count() > 0)
-            <form method="POST" action="{{route('wishlist.item.remove',['rowId'=>Cart::instance('wishlist')->content()->where('id',$product->id)->first()->rowId])}}" id="item-remove-wishlist">
-                  @csrf
-                  @method('DELETE')
-            <a href="javascript:void(0)" class="menu-link menu-link_us-s add-to-wishlist filled-heart" onclick="document.getElementById('item-remove-wishlist').submit();"><svg width="16" height="16" viewBox="0 0 20 20"
-                fill="none" xmlns="http://www.w3.org/2000/svg" >
-                <use href="#icon_heart" />
-              </svg><span>Remove from Wishlist</span></a>
-            </form>
-            @else
-            <form method="POST" action="{{route('wishlist.add')}}" id="wishlist-form">
+                  <div class="product-single__addtolinks">
+                  @php
+            $wishlistItem = null;
+            if (auth()->check()) {
+                $wishlistItem = \App\Models\Wishlist::where('user_id', auth()->id())
+                                ->where('product_id', $product->id)
+                                ->first();
+            }
+        @endphp
+
+        @if (auth()->check())
+            <form method="POST"
+                class="js-wishlist-form"
+                data-product-id="{{ $product->id }}"
+                data-name="{{ $product->name }}"
+                data-price="{{ $product->sale_price ?: $product->regular_price }}"
+                data-action="{{ $wishlistItem ? 'remove' : 'add' }}"
+                data-row-id="{{ $wishlistItem->id ?? '' }}"
+            >
                 @csrf
-                <input type="hidden" name="id" value="{{$product->id}}">
-                <input type="hidden" name="name" value="{{$product->name}}">
-                <input type="hidden" name="price" value="{{$product->sale_price == '' ? $product->regular_price : $product->sale_price}}">
-                <input type="hidden" name="quantity" value="1">
-                <a href="javascript:void(0)" class="menu-link menu-link_us-s add-to-wishlist" onclick="document.getElementById('wishlist-form').submit();"><svg width="16" height="16" viewBox="0 0 20 20"
-                    fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <use href="#icon_heart" />
-                </svg><span>Add to Wishlist</span></a>
+                @if($wishlistItem)
+                    @method('DELETE')
+                @else
+                    <input type="hidden" name="quantity" value="1">
+                @endif
+
+                <a href="javascript:void(0)"
+                    class="menu-link menu-link_us-s add-to-wishlist {{ $wishlistItem ? 'filled-heart' : '' }}"
+                    onclick="this.closest('form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));"
+                >
+                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                        <use href="#icon_heart" />
+                    </svg>
+                    <span>{{ $wishlistItem ? 'Remove from Wishlist' : 'Add to Wishlist' }}</span>
+                </a>
             </form>
-            @endif
+        @else
+            <a href="{{ route('login') }}"
+                class="menu-link menu-link_us-s add-to-wishlist"
+                title="Please login to add to wishlist"
+            >
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                    <use href="#icon_heart" />
+                </svg>
+                <span>Add to Wishlist</span>
+            </a>
+        @endif
+
             <share-button class="share-button">
               <button class="menu-link menu-link_us-s to-share border-0 bg-transparent d-flex align-items-center">
                 <svg width="16" height="19" viewBox="0 0 16 19" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -204,7 +229,7 @@
             </div>
             <div class="meta-item">
               <label>Tags:</label>
-              <span>NA</span>
+              <span>N/A</span>
             </div>
           </div>
         </div>
@@ -456,77 +481,101 @@
           }'>
           <div class="swiper-wrapper">
               @foreach ($rproducts as $rproduct)
-            <div class="swiper-slide product-card">
-              <div class="pc__img-wrapper">
-                <a href="{{ route('shop.product.details', ['product_slug'=>$rproduct->slug]) }}">
-                  <img loading="lazy" src="{{ asset('uploads/products') }}/{{ $rproduct->image }}" width="330" height="400"
-                    alt="{{ $rproduct->name }}" class="pc__img">
-                   @php
-                      // Split the images string into an array and select one randomly
-                      $randomImage = Arr::random(explode(",", $rproduct->images));
-                  @endphp
+                <div class="swiper-slide product-card product-card_style3">
+                  <div class="pc__img-wrapper">
+                    <div class="swiper-container background-img js-swiper-slider" data-settings='{"resizeObserver": true}'>
+                      <div class="swiper-wrapper">
+                        <div class="swiper-slide">
+                          <a href="{{ route('shop.product.details', ['product_slug'=>$rproduct->slug]) }}">
+                            <img loading="lazy" src="{{ asset('uploads/products') }}/{{ $rproduct->image }}" width="330" height="400" alt="{{ $rproduct->name }}" class="pc__img">
+                          </a>
+                        </div>
+                        @foreach (explode(',', $rproduct->images) as $gimg)
+                        <div class="swiper-slide">
+                          <a href="{{ route('shop.product.details', ['product_slug'=>$rproduct->slug]) }}">
+                            <img loading="lazy" src="{{ asset('uploads/products') }}/{{ trim($gimg) }}" width="330" height="400" alt="{{ $rproduct->name }}" class="pc__img">
+                          </a>
+                        </div>
+                        @endforeach
+                      </div>
+                      <span class="pc__img-prev"><svg width="7" height="11" viewBox="0 0 7 11" xmlns="http://www.w3.org/2000/svg"><use href="#icon_prev_sm" /></svg></span>
+                      <span class="pc__img-next"><svg width="7" height="11" viewBox="0 0 7 11" xmlns="http://www.w3.org/2000/svg"><use href="#icon_next_sm" /></svg></span>
+                    </div>
 
-                  <img loading="lazy" src="{{ asset('uploads/products') }}/{{ $randomImage }}" width="330" height="400"
-                      alt="{{ $rproduct->name }}" class="pc__img pc__img-second">
+                    @php
+                      $inCart = false;
+                      if (auth()->check()) {
+                          $inCart = \App\Models\Cart::where('user_id', auth()->id())
+                                    ->where('product_id', $rproduct->id)
+                                    ->exists();
+                      }
+                    @endphp
 
-                </a>
-                @if (Cart::instance('cart')->content()->where('id',$rproduct->id)->count() > 0)
-                <a href="{{ route('cart.index') }}" class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium btn-warning mb-3">Go to Cart</a>
-                @else
-                <form name="addtocart-form" method="post" action="{{route('cart.add')}}">
-                @csrf
-                  <input type="hidden" name="id" value="{{ $rproduct->id }}">    
-                  <input type="hidden" name="name" value="{{ $rproduct->name }}">    
-                  <input type="hidden" name="quantity" value="1">    
-                  <input type="hidden" name="price" value="{{ $rproduct->sale_price == '' ? $rproduct->regular_price : $rproduct->sale_price }}">
-                  <button type="submit" class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium" data-aside="cartDrawer" title="Add To Cart">Add To Cart</button>
-                </form>
-                @endif
-              </div>
+                    @if ($inCart)
+                      <a href="{{ route('cart.index') }}" class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium btn-warning mb-3">
+                        Go to Cart
+                      </a>
+                    @else
+                      <form name="addtocart-form" method="post" action="{{ route('cart.add') }}">
+                        @csrf
+                        <input type="hidden" name="id" value="{{ $rproduct->id }}">
+                        <input type="hidden" name="name" value="{{ $rproduct->name }}">
+                        <input type="hidden" name="quantity" value="1">
+                        <input type="hidden" name="price" value="{{ $rproduct->sale_price ?: $rproduct->regular_price }}">
+                        <button type="submit" class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium" data-aside="cartDrawer" title="Add To Cart">
+                          Add To Cart
+                        </button>
+                      </form>
+                    @endif
+                  </div>
 
-              <div class="pc__info position-relative">
-                <p class="pc__category">{{$rproduct->category->name}}</p>
-                <h6 class="pc__title"><a href="{{ route('shop.product.details', ['product_slug'=>$rproduct->slug]) }}">{{$rproduct->name}}</a></h6>
-                <div class="product-card__price d-flex">
-                  <span class="money price">
-                  @if ($rproduct->sale_price)
-                    <s>${{$rproduct->regular_price}}</s> ${{$rproduct->sale_price}}
-                @else
-                    ${{$rproduct->regular_price}}
-                @endif
-                  </span>
+                  <div class="pc__info position-relative">
+                    <p class="pc__category">{{ $rproduct->category->name }}</p>
+                    <h6 class="pc__title">
+                      <a href="{{ route('shop.product.details', ['product_slug'=>$rproduct->slug]) }}">{{ $rproduct->name }}</a>
+                    </h6>
+                    <div class="product-card__price d-flex">
+                      <span class="money price">
+                        @if ($rproduct->sale_price)
+                          <s>${{ $rproduct->regular_price }}</s> ${{ $rproduct->sale_price }}
+                        @else
+                          ${{ $rproduct->regular_price }}
+                        @endif
+                      </span>
+                    </div>
+                    <div class="product-card__review d-flex align-items-center">
+                      <div class="reviews-group d-flex">
+                        @for ($i = 0; $i < 5; $i++)
+                          <svg class="review-star" viewBox="0 0 9 9" xmlns="http://www.w3.org/2000/svg"><use href="#icon_star" /></svg>
+                        @endfor
+                      </div>
+                      <span class="reviews-note text-lowercase text-secondary ms-1">8k+ reviews</span>
+                    </div>
+
+                    @php
+                      $wishlistItem = null;
+                      if (auth()->check()) {
+                          $wishlistItem = \App\Models\Wishlist::where('user_id', auth()->id())
+                                          ->where('product_id', $rproduct->id)
+                                          ->first();
+                      }
+                    @endphp
+
+                    <button 
+                      class="wishlist-btn position-absolute top-0 end-0 bg-transparent border-0 js-wishlist-toggle {{ $wishlistItem ? 'filled' : '' }}" 
+                      data-product-id="{{ $rproduct->id }}"
+                      data-name="{{ $rproduct->name }}"
+                      data-price="{{ $rproduct->sale_price ?: $rproduct->regular_price }}"
+                      data-action="{{ $wishlistItem ? 'remove' : 'add' }}"
+                      data-row-id="{{ $wishlistItem->id ?? '' }}"
+                      title="{{ $wishlistItem ? 'Remove from Wishlist' : 'Add to Wishlist' }}"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><use href="#icon_heart" /></svg>
+                    </button>
+                  </div>
                 </div>
+                @endforeach
 
-                @if (Cart::instance('wishlist')->content()->where('id',$rproduct->id)->count() > 0)
-                <form method="POST" action="{{route('wishlist.item.remove',['rowId'=>Cart::instance('wishlist')->content()->where('id',$rproduct->id)->first()->rowId])}}">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="pc__btn-wl position-absolute top-0 end-0 bg-transparent border-0 js-add-wishlist filled-heart"
-                  title="Remove From Wishlist">
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <use href="#icon_heart" />
-                  </svg>
-                </button>
-                </form>
-                @else
-                <form method="POST" action="{{route('wishlist.add')}}">
-                @csrf
-                <input type="hidden" name="id" value="{{$rproduct->id}}">
-                <input type="hidden" name="name" value="{{$rproduct->name}}">
-                <input type="hidden" name="price" value="{{$rproduct->sale_price == '' ? $rproduct->regular_price : $rproduct->sale_price}}">
-                <input type="hidden" name="quantity" value="1">
-
-                <button type="submit" class="pc__btn-wl position-absolute top-0 end-0 bg-transparent border-0 js-add-wishlist"
-                  title="Add To Wishlist">
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <use href="#icon_heart" />
-                  </svg>
-                </button>
-                </form>
-                @endif
-              </div>
-            </div>
-            @endforeach
             
           </div><!-- /.swiper-wrapper -->
         </div><!-- /.swiper-container js-swiper-slider -->
@@ -549,3 +598,158 @@
     </section><!-- /.products-carousel container -->
   </main>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const token = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    // ========================
+    // FORM-Based Wishlist Logic
+    // ========================
+    document.querySelectorAll('.js-wishlist-form').forEach(form => {
+        const btn = form.querySelector('.add-to-wishlist');
+        const span = btn?.querySelector('span');
+
+        // تأكيد الحالة الأولية
+        updateFormButtonStyle(form);
+
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const action = form.dataset.action;
+            const id = form.dataset.productId;
+            const name = form.dataset.name;
+            const price = form.dataset.price;
+            const rowId = form.dataset.rowId;
+
+            const route = action === 'add'
+                ? '{{ route("wishlist.add") }}'
+                : `/wishlist/remove/${rowId}`;
+
+            const method = action === 'add' ? 'POST' : 'DELETE';
+
+            const body = action === 'add'
+                ? JSON.stringify({ id, name, price, quantity: 1 })
+                : null;
+
+            try {
+                const response = await fetch(route, {
+                    method,
+                    headers: {
+                        'X-CSRF-TOKEN': token,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body
+                });
+
+                if (!response.ok) throw new Error("Request failed");
+
+                const result = await response.json();
+
+                form.dataset.action = action === 'add' ? 'remove' : 'add';
+                form.dataset.rowId = action === 'add' ? (result.id ?? '') : '';
+                updateFormButtonStyle(form);
+                showToast(action === 'add' ? 'Added to Wishlist' : 'Removed from Wishlist');
+                updateWishlistCount(result.wishlistCount);
+            } catch (err) {
+                console.error(err);
+                showToast('Something went wrong', true);
+            }
+        });
+    });
+
+    // ========================
+    // BUTTON-Based Wishlist Logic
+    // ========================
+    document.querySelectorAll('.js-wishlist-toggle').forEach(button => {
+        // تأكيد الحالة الأولية
+        updateButtonStyle(button);
+
+        button.addEventListener('click', async function () {
+            const id = this.dataset.productId;
+            const name = this.dataset.name;
+            const price = this.dataset.price;
+            const action = this.dataset.action;
+            const rowId = this.dataset.rowId;
+
+            const route = action === 'add'
+                ? '{{ route("wishlist.add") }}'
+                : `/wishlist/remove/${rowId}`;
+
+            const method = action === 'add' ? 'POST' : 'DELETE';
+
+            const body = action === 'add'
+                ? JSON.stringify({ id, name, price, quantity: 1 })
+                : null;
+
+            try {
+                const response = await fetch(route, {
+                    method,
+                    headers: {
+                        'X-CSRF-TOKEN': token,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body
+                });
+
+                if (!response.ok) throw new Error("Request failed");
+
+                const result = await response.json();
+
+                this.dataset.action = action === 'add' ? 'remove' : 'add';
+                this.dataset.rowId = action === 'add' ? (result.id ?? '') : '';
+                this.title = action === 'add' ? 'Remove from Wishlist' : 'Add to Wishlist';
+                updateButtonStyle(this);
+                showToast(action === 'add' ? 'Added to Wishlist' : 'Removed from Wishlist');
+                updateWishlistCount(result.wishlistCount);
+            } catch (err) {
+                console.error(err);
+                showToast('Network error', true);
+            }
+        });
+    });
+
+    // ========================
+    // Helper functions
+    // ========================
+    function showToast(message, isError = false) {
+        const toast = document.createElement('div');
+        toast.innerText = message;
+        toast.className = `wishlist-toast ${isError ? 'error' : 'success'}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 100);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 2000);
+    }
+
+    function updateWishlistCount(count) {
+        const countSpan = document.querySelector('#wishlist-count');
+        if (countSpan && count !== undefined) {
+            countSpan.textContent = count;
+            countSpan.style.display = count > 0 ? 'inline-block' : 'none';
+        }
+    }
+
+    function updateButtonStyle(button) {
+        const isActive = button.dataset.action === 'remove';
+        button.classList.toggle('filled', isActive);
+    }
+
+    function updateFormButtonStyle(form) {
+        const btn = form.querySelector('.add-to-wishlist');
+        const span = btn?.querySelector('span');
+        const isActive = form.dataset.action === 'remove';
+
+        btn?.classList.toggle('filled-heart', isActive);
+        if (span) span.textContent = isActive ? 'Remove from Wishlist' : 'Add to Wishlist';
+    }
+});
+</script>
+
+
+@endpush
