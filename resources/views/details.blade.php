@@ -502,31 +502,37 @@
                       <span class="pc__img-next"><svg width="7" height="11" viewBox="0 0 7 11" xmlns="http://www.w3.org/2000/svg"><use href="#icon_next_sm" /></svg></span>
                     </div>
 
-                    @php
-                      $inCart = false;
+                  @php
+                      $cartItem = null;
                       if (auth()->check()) {
-                          $inCart = \App\Models\Cart::where('user_id', auth()->id())
-                                    ->where('product_id', $rproduct->id)
-                                    ->exists();
+                          $cartItem = \App\Models\Cart::where('user_id', auth()->id())
+                                          ->where('product_id', $product->id)
+                                          ->first();
                       }
-                    @endphp
+                  @endphp
 
-                    @if ($inCart)
-                      <a href="{{ route('cart.index') }}" class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium btn-warning mb-3">
-                        Go to Cart
+                  @if (auth()->check())
+                      <button 
+                          class="cart-btn pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium js-cart-toggle {{ $cartItem ? 'filled' : '' }}" 
+                          data-product-id="{{ $rproduct->id }}"
+                          data-name="{{ $rproduct->name }}"
+                          data-price="{{ $rproduct->sale_price ?: $rproduct->regular_price }}"
+                          data-action="{{ $cartItem ? 'remove' : 'add' }}"
+                          data-row-id="{{ $cartItem->id ?? '' }}"
+                          data-add-route="{{ route('cart.add') }}"
+                          title="{{ $cartItem ? 'Remove from Cart' : 'Add to Cart' }}"
+                      >
+                          {{ $cartItem ? 'Remove from Cart' : 'Add to Cart' }}
+                      </button>
+                  @else
+                      <a href="{{ route('login') }}"
+                          class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium"
+                          title="Please login to add to cart"
+                      >
+                          Add to Cart
                       </a>
-                    @else
-                      <form name="addtocart-form" method="post" action="{{ route('cart.add') }}">
-                        @csrf
-                        <input type="hidden" name="id" value="{{ $rproduct->id }}">
-                        <input type="hidden" name="name" value="{{ $rproduct->name }}">
-                        <input type="hidden" name="quantity" value="1">
-                        <input type="hidden" name="price" value="{{ $rproduct->sale_price ?: $rproduct->regular_price }}">
-                        <button type="submit" class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium" data-aside="cartDrawer" title="Add To Cart">
-                          Add To Cart
-                        </button>
-                      </form>
-                    @endif
+                  @endif
+
                   </div>
 
                   <div class="pc__info position-relative">
@@ -615,14 +621,10 @@
 document.addEventListener('DOMContentLoaded', function () {
     const token = document.querySelector('meta[name="csrf-token"]')?.content;
 
-    // ========================
-    // FORM-Based Wishlist Logic
-    // ========================
     document.querySelectorAll('.js-wishlist-form').forEach(form => {
         const btn = form.querySelector('.add-to-wishlist');
         const span = btn?.querySelector('span');
 
-        // تأكيد الحالة الأولية
         updateFormButtonStyle(form);
 
         form.addEventListener('submit', async function (e) {
@@ -671,11 +673,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // ========================
-    // BUTTON-Based Wishlist Logic
-    // ========================
     document.querySelectorAll('.js-wishlist-toggle').forEach(button => {
-        // تأكيد الحالة الأولية
         updateButtonStyle(button);
 
         button.addEventListener('click', async function () {
@@ -723,9 +721,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // ========================
-    // Helper functions
-    // ========================
     function showToast(message, isError = false) {
         const toast = document.createElement('div');
         toast.innerText = message;
@@ -762,5 +757,78 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const token = document.querySelector('meta[name="csrf-token"]')?.content;
 
+    document.querySelectorAll('.js-cart-toggle').forEach(button => {
+        button.addEventListener('click', async function () {
+            const id = this.dataset.productId;
+            const name = this.dataset.name;
+            const price = this.dataset.price;
+            const action = this.dataset.action;
+            const rowId = this.dataset.rowId;
+            const addRoute = this.dataset.addRoute;
+
+            const route = action === 'add'
+                ? addRoute
+                : `/cart/remove/${rowId}`;
+
+            const method = action === 'add' ? 'POST' : 'DELETE';
+
+            const body = action === 'add'
+                ? JSON.stringify({ id, name, price, quantity: 1 })
+                : null;
+
+            try {
+                const response = await fetch(route, {
+                    method,
+                    headers: {
+                        'X-CSRF-TOKEN': token,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body
+                });
+
+                if (!response.ok) throw new Error("Request failed");
+
+                const result = await response.json();
+
+                this.dataset.action = action === 'add' ? 'remove' : 'add';
+                this.dataset.rowId = action === 'add' ? (result.id ?? '') : '';
+                this.title = action === 'add' ? 'Remove from Cart' : 'Add to Cart';
+                this.textContent = action === 'add' ? 'Remove from Cart' : 'Add to Cart';
+
+                // Optional: toggle filled class for styling
+                this.classList.toggle('filled', action === 'add');
+
+                showToast(action === 'add' ? 'Added to Cart' : 'Removed from Cart');
+
+                const countSpan = document.querySelector('#cart-count');
+                if (countSpan) {
+                    countSpan.textContent = result.cartCount;
+                    countSpan.style.display = result.cartCount > 0 ? 'inline-block' : 'none';
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Network error', true);
+            }
+        });
+    });
+
+    function showToast(message, isError = false) {
+        const toast = document.createElement('div');
+        toast.innerText = message;
+        toast.className = `wishlist-toast ${isError ? 'error' : 'success'}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 100);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 2000);
+    }
+});
+
+</script>
 @endpush

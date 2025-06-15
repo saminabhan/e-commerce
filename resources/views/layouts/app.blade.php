@@ -274,7 +274,7 @@
         </a>
       </div>
 
-      <a href="#" class="header-tools__item header-tools__cart js-open-aside" data-aside="cartDrawer">
+      <a href="{{ route('cart.index') }}" class="header-tools__item header-tools__cart js-open-aside" data-aside="cartDrawer">
         <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
           <use href="#icon_cart" />
         </svg>
@@ -487,18 +487,18 @@
               <use href="#icon_heart" />
             </svg>
            @php
-    $wishlistCount = \App\Models\Wishlist::where('user_id', Auth::id())->count();
-@endphp
+              $wishlistCount = \App\Models\Wishlist::where('user_id', Auth::id())->count();
+          @endphp
 
-@if ($wishlistCount > 0)
-    <span id="wishlist-count" class="cart-amount d-block position-absolute js-cart-items-count">
-        {{ $wishlistCount }}
-    </span>
-@else
-    <span id="wishlist-count" class="cart-amount d-block position-absolute js-cart-items-count" style="display:none;">
-        0
-    </span>
-@endif
+          @if ($wishlistCount > 0)
+              <span id="wishlist-count" class="cart-amount d-block position-absolute js-cart-items-count">
+                  {{ $wishlistCount }}
+              </span>
+          @else
+              <span id="wishlist-count" class="cart-amount d-block position-absolute js-cart-items-count" style="display:none;">
+                  0
+              </span>
+          @endif
 
           </a>
 
@@ -512,7 +512,13 @@
             @endphp
 
             @if ($cartCount > 0)
-                <span class="cart-amount d-block position-absolute js-cart-items-count">{{ $cartCount }}</span>
+                <span id="cart-count" class="cart-amount d-block position-absolute js-cart-items-count">
+                  {{ $cartCount }}
+                </span>
+            @else
+                <span id="cart-count" class="cart-amount d-block position-absolute js-cart-items-count" style="display:none;">
+                  0
+                </span>
             @endif
           </a>
         </div>
@@ -654,7 +660,7 @@
       </div>
 
       <div class="col-4">
-        <a href="{{ route('home.index') }}" class="footer-mobile__link d-flex flex-column align-items-center">
+        <a href="{{ route('shop.index') }}" class="footer-mobile__link d-flex flex-column align-items-center">
           <svg class="d-block" width="18" height="18" viewBox="0 0 18 18" fill="none"
             xmlns="http://www.w3.org/2000/svg">
             <use href="#icon_hanger" />
@@ -664,7 +670,7 @@
       </div>
 
       <div class="col-4">
-        <a href="{{ route('home.index') }}" class="footer-mobile__link d-flex flex-column align-items-center">
+        <a href="{{ route('wishlist.index') }}" class="footer-mobile__link d-flex flex-column align-items-center">
           <div class="position-relative">
             <svg class="d-block" width="18" height="18" viewBox="0 0 20 20" fill="none"
               xmlns="http://www.w3.org/2000/svg">
@@ -752,6 +758,70 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const buttons = document.querySelectorAll('.js-wishlist-toggle');
+
+    buttons.forEach(button => {
+        button.addEventListener('click', async function (e) {
+            e.preventDefault();
+
+            const btn = e.currentTarget;
+            const productId = btn.dataset.productId;
+            const name = btn.dataset.name;
+            const price = btn.dataset.price;
+            const rowId = btn.dataset.rowId;
+            const action = btn.dataset.action;
+
+            const url = action === 'add'
+                ? "{{ route('cart.add') }}"
+                : `/cart/remove/${rowId}`;
+
+            const method = action === 'add' ? 'POST' : 'DELETE';
+
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: action === 'add'
+                        ? JSON.stringify({ id: productId, name, price, quantity: 1 })
+                        : null
+                });
+
+                if (!res.ok) throw new Error("Request failed");
+
+                const result = await res.json();
+
+                if (action === 'add') {
+                    btn.classList.add('filled');
+                    btn.dataset.action = 'remove';
+                    btn.dataset.rowId = result.rowId;
+                    btn.title = 'Remove from Cart';
+                } else {
+                    btn.classList.remove('filled');
+                    btn.dataset.action = 'add';
+                    btn.dataset.rowId = '';
+                    btn.title = 'Add to Cart';
+                }
+
+                const countSpan = document.querySelector('#cart-count');
+                if (countSpan) {
+                    countSpan.textContent = result.CartCount;
+                    countSpan.style.display = result.CartCount > 0 ? 'inline-block' : 'none';
+                }
+
+            } catch (err) {
+                console.error(err);
+                alert("Something went wrong.");
+            }
+        });
+    });
+});
+</script>
   @stack('scripts')
 </body>
 </html>

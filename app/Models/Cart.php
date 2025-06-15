@@ -15,4 +15,12 @@ class Cart extends Model
     {
     return $this->belongsTo(Product::class);
     }
+
+     public function getCurrentPriceAttribute()
+    {
+        if ($this->product) {
+            return $this->product->sale_price ?? $this->product->regular_price;
+        }
+        return null;
+    }
 }

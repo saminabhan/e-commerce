@@ -11,25 +11,7 @@ class CartController extends Controller
 {
     public function index()
     {
-        $userId = auth()->id();
-        $items = Cart::where('user_id', $userId)->get();
-
-        foreach ($items as $item) {
-            $product = $item->product;
-            if (!$product) {
-                $item->delete();
-                continue;
-            }
-
-            $currentPrice = $product->sale_price ?? $product->regular_price;
-            if ($item->price != $currentPrice) {
-                $item->price = $currentPrice;
-                $item->save();
-            }
-        }
-
-        $items = Cart::where('user_id', $userId)->get();
-
+        $items = Cart::where('user_id', Auth::id())->get();
         return view('cart', compact('items'));
     }
 
@@ -37,50 +19,60 @@ class CartController extends Controller
     {
         $product = Product::findOrFail($request->id);
 
-        $quantity = $request->quantity ?? 1;
-        $price = $product->sale_price ?? $product->regular_price;
-
-        $cartItem = Cart::where('user_id', auth()->id())
+        $existing = Cart::where('user_id', Auth::id())
             ->where('product_id', $product->id)
             ->first();
 
-        if ($cartItem) {
-            $cartItem->quantity += $quantity;
-            // Update price in case it changed since last add
-            $cartItem->price = $price;
-            $cartItem->save();
-        } else {
-            Cart::create([
-                'user_id'      => auth()->id(),
-                'product_id'   => $product->id,
+        if (!$existing) {
+            $item = Cart::create([
+                'user_id' => Auth::id(),
+                'product_id' => $product->id,
                 'product_name' => $product->name,
-                'quantity'     => $quantity,
-                'price'        => $price,
+                'quantity' => $request->quantity ?? 1,
+                'price' => $product->sale_price ?? $product->regular_price,
             ]);
+        } else {
+            // Optional: update quantity if already exists
+            $existing->quantity += $request->quantity ?? 1;
+            $existing->save();
+            $item = $existing;
         }
 
-        return redirect()->back()->with('success', 'Product added to cart');
+        return response()->json([
+            'status' => 'added',
+            'id' => $item->id,
+            'cartCount' => Cart::where('user_id', Auth::id())->count()
+        ]);
     }
 
-    public function increase_cart_quantity($id)
+    public function remove_item($id)
     {
-        $cartItem = Cart::where('user_id', auth()->id())->findOrFail($id);
-        $product = $cartItem->product;
+        Cart::where('id', $id)->where('user_id', Auth::id())->delete();
 
-        if ($product) {
-            $currentPrice = $product->sale_price ?? $product->regular_price;
-            $cartItem->price = $currentPrice;
-        }
+        return response()->json([
+            'status' => 'removed',
+            'cartCount' => Cart::where('user_id', Auth::id())->count()
+        ]);
+    }
 
+    public function empty_cart()
+    {
+        Cart::where('user_id', Auth::id())->delete();
+        return redirect()->back();
+    }
+
+    public function increase_quantity($id)
+    {
+        $cartItem = Cart::where('user_id', Auth::id())->findOrFail($id);
         $cartItem->quantity += 1;
         $cartItem->save();
 
         return redirect()->back();
     }
 
-    public function decrease_cart_quantity($id)
+    public function decrease_quantity($id)
     {
-        $cartItem = Cart::where('user_id', auth()->id())->findOrFail($id);
+        $cartItem = Cart::where('user_id', Auth::id())->findOrFail($id);
 
         if ($cartItem->quantity > 1) {
             $cartItem->quantity -= 1;
@@ -89,18 +81,6 @@ class CartController extends Controller
             $cartItem->delete();
         }
 
-        return redirect()->back();
-    }
-
-    public function remove_item($id)
-    {
-        Cart::where('user_id', auth()->id())->findOrFail($id)->delete();
-        return redirect()->back();
-    }
-
-    public function empty_cart()
-    {
-        Cart::where('user_id', auth()->id())->delete();
         return redirect()->back();
     }
 }

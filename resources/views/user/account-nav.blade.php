@@ -12,7 +12,7 @@
         <a href="{{ route('user.details') }}" class="menu-link menu-link_us-s @if(request()->routeIs('user.details')) menu-link_active @endif">Account Details</a>
     </li>
     <li>
-        <a href="#" class="menu-link menu-link_us-s @if(request()->routeIs('wishlist.*')) menu-link_active @endif">Wishlist</a>
+        <a href="{{ route('wishlist.index') }}" class="menu-link menu-link_us-s @if(request()->routeIs('wishlist.*')) menu-link_active @endif">Wishlist</a>
     </li>
     <li>
         <form method="POST" action="{{ route('logout') }}" id="logout-form">

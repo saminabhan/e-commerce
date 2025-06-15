@@ -325,31 +325,34 @@
                     </svg></span>
                 </div>
                @php
-                  $inCart = false;
-                  if (auth()->check()) {
-                      $inCart = \App\Models\Cart::where('user_id', auth()->id())
-                                ->where('product_id', $product->id)
-                                ->exists();
-                  }
-              @endphp
+                    $cartItem = null;
+                    if (auth()->check()) {
+                        $cartItem = \App\Models\Cart::where('user_id', auth()->id())
+                                        ->where('product_id', $product->id)
+                                        ->first();
+                    }
+                @endphp
 
-              @if ($inCart)
-                  <a href="{{ route('cart.index') }}" 
-                    class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium btn-warning mb-3">
-                      Go to Cart
-                  </a>
-              @else
-                  <form name="addtocart-form" method="post" action="{{ route('cart.add') }}">
-                      @csrf
-                      <input type="hidden" name="id" value="{{ $product->id }}">
-                      <input type="hidden" name="name" value="{{ $product->name }}">
-                      <input type="hidden" name="quantity" value="1">
-                      <input type="hidden" name="price" value="{{ $product->sale_price ?: $product->regular_price }}">
-                      <button type="submit" class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium" data-aside="cartDrawer" title="Add To Cart">
-                          Add To Cart
-                      </button>
-                  </form>
-              @endif
+                @if (auth()->check())
+                    <button 
+                        class="cart-btn pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium js-cart-toggle {{ $cartItem ? 'filled' : '' }}" 
+                        data-product-id="{{ $product->id }}"
+                        data-name="{{ $product->name }}"
+                        data-price="{{ $product->sale_price ?: $product->regular_price }}"
+                        data-action="{{ $cartItem ? 'remove' : 'add' }}"
+                        data-row-id="{{ $cartItem->id ?? '' }}"
+                        title="{{ $cartItem ? 'Remove from Cart' : 'Add to Cart' }}"
+                    >
+                        {{ $cartItem ? 'Remove from Cart' : 'Add To Cart' }}
+                    </button>
+                @else
+                    <a href="{{ route('login') }}"
+                        class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium"
+                        title="Please login to add to cart"
+                    >
+                        Add To Cart
+                    </a>
+                @endif
 
               </div>
 
@@ -614,5 +617,82 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const token = document.querySelector('meta[name="csrf-token"]').content;
 
+    document.querySelectorAll('.js-cart-toggle').forEach(button => {
+        button.addEventListener('click', async function () {
+            const id = this.dataset.productId;
+            const name = this.dataset.name;
+            const price = this.dataset.price;
+            const action = this.dataset.action;
+            const rowId = this.dataset.rowId;
+
+            const route = action === 'add'
+                ? '{{ route("cart.add") }}'
+                : `/cart/remove/${rowId}`;
+
+            const method = action === 'add' ? 'POST' : 'DELETE';
+
+            const body = action === 'add'
+                ? JSON.stringify({ id, name, price, quantity: 1 })
+                : null;
+
+            try {
+                const response = await fetch(route, {
+                    method,
+                    headers: {
+                        'X-CSRF-TOKEN': token,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+
+                    if (action === 'add') {
+                        this.dataset.action = 'remove';
+                        this.dataset.rowId = result.id ?? '';
+                        this.title = 'Remove from Cart';
+                        this.textContent = 'Remove from Cart';
+                        showToast('Added to Cart');
+                    } else {
+                        this.dataset.action = 'add';
+                        this.dataset.rowId = '';
+                        this.title = 'Add to Cart';
+                        this.textContent = 'Add to Cart';
+                        showToast('Removed from Cart');
+                    }
+
+                    const countSpan = document.querySelector('#cart-count');
+                    if (countSpan) {
+                        countSpan.textContent = result.cartCount;
+                        countSpan.style.display = result.cartCount > 0 ? 'inline-block' : 'none';
+                    }
+                } else {
+                    showToast('Something went wrong', true);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Network error', true);
+            }
+        });
+    });
+
+    function showToast(message, isError = false) {
+        const toast = document.createElement('div');
+        toast.innerText = message;
+        toast.className = `wishlist-toast ${isError ? 'error' : 'success'}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 100);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 2000);
+    }
+});
+</script>
 @endpush
