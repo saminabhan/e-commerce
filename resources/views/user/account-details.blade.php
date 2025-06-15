@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Sami Store | My Account Details')
 @section('content')
 <main class="pt-90">
     <div class="mb-4 pb-4"></div>

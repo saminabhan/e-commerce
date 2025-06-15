@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', 'Sami Store | Product Details')
 @section('content')
 <style>
   .filled-heart{
@@ -800,7 +800,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 this.title = action === 'add' ? 'Remove from Cart' : 'Add to Cart';
                 this.textContent = action === 'add' ? 'Remove from Cart' : 'Add to Cart';
 
-                // Optional: toggle filled class for styling
                 this.classList.toggle('filled', action === 'add');
 
                 showToast(action === 'add' ? 'Added to Cart' : 'Removed from Cart');

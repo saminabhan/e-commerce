@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Sami Store')
 @section('content')
 <main>
 

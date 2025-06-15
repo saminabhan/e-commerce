@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', 'Sami Store | Shopping')
 @section('content')
 <style>
   .brand-list li, .category-list li{
