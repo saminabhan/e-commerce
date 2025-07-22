@@ -3,11 +3,15 @@
         <a href="{{ route('user.index') }}" class="menu-link menu-link_us-s @if(request()->routeIs('user.index')) menu-link_active @endif">Dashboard</a>
     </li>
     <li>
-        <a href="#" class="menu-link menu-link_us-s @if(request()->routeIs('orders.*')) menu-link_active @endif">Orders</a>
+        <a href="{{ route('user.orders') }}" class="menu-link menu-link_us-s @if(request()->routeIs('user.orders')) menu-link_active @endif">Orders</a>
     </li>
     <li>
-        <a href="#" class="menu-link menu-link_us-s @if(request()->routeIs('addresses.*')) menu-link_active @endif">Addresses</a>
+        <a href="{{ route('addresses.index') }}" 
+           class="menu-link menu-link_us-s @if(request()->routeIs('addresses.*')) menu-link_active @endif">
+            Addresses
+        </a>
     </li>
+
     <li>
         <a href="{{ route('user.details') }}" class="menu-link menu-link_us-s @if(request()->routeIs('user.details')) menu-link_active @endif">Account Details</a>
     </li>

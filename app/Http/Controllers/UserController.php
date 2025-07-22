@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -77,5 +78,28 @@ class UserController extends Controller
         return redirect()->route('user.details')
             ->with('success', 'Password updated successfully!');
     }
+
+    public function orders()
+{
+    $user = Auth::user();
+
+    $orders = Order::withCount('items')
+        ->where('user_id', $user->id)
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return view('user.account-orders', compact('orders'));
+}
+public function orderDetails(Order $order)
+{
+    if ($order->user_id !== Auth::id()) {
+        abort(403);
+    }
+
+    $order->load('items.product'); // لو محتاج المنتج أيضًا
+
+    return view('user.order-details', compact('order'));
+}
+
 
 }

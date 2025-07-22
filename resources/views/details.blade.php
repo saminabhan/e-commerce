@@ -119,25 +119,37 @@
           <div class="product-single__short-desc">
             <p>{{$product->short_description}}</p>
           </div>
-          @if (Cart::instance('cart')->content()->where('id',$product->id)->count() > 0)
-            <a href="{{ route('cart.index') }}" class="btn btn-warning mb-3">Go to Cart</a>
-          @else
-          <form name="addtocart-form" method="post" action="{{route('cart.add')}}">
-            @csrf
-            <div class="product-single__addtocart">
-              <div class="qty-control position-relative">
-                <input type="number" name="quantity" value="1" min="1" class="qty-control__number text-center">
-                <div class="qty-control__reduce">-</div>
-                <div class="qty-control__increase">+</div>
-              </div><!-- .qty-control -->
-              <input type="hidden" name="id" value="{{ $product->id }}">    
-              <input type="hidden" name="name" value="{{ $product->name }}">    
-              <input type="hidden" name="price" value="{{ $product->sale_price == '' ? $product->regular_price : $product->sale_price }}">
+     @php
+    $cartItem = Cart::instance('cart')->content()->firstWhere('id', $product->id);
+@endphp
 
-              <button type="submit" class="btn btn-primary btn-addtocart" data-aside="cartDrawer">Add to Cart</button>
-            </div>
-          </form>
-          @endif
+@if ($cartItem)
+    <a href="{{ route('cart.index') }}" class="btn btn-warning mb-3">Go to Cart</a>
+@else
+<div class="product-single__addtocart">
+  <div class="qty-control position-relative">
+    <input type="number" name="quantity" value="1" min="1" class="qty-control__number text-center">
+    <div class="qty-control__reduce" role="button" tabindex="0" aria-label="Decrease quantity">-</div>
+    <div class="qty-control__increase" role="button" tabindex="0" aria-label="Increase quantity">+</div>
+  </div>
+
+  <button
+    type="button"
+    class="btn btn-primary js-cart-toggle"
+    data-product-id="{{ $product->id }}"
+    data-name="{{ $product->name }}"
+    data-price="{{ $product->sale_price ?: $product->regular_price }}"
+    data-action="add"
+    data-row-id=""
+    data-add-route="{{ route('cart.add') }}"
+    title="Add to Cart"
+  >
+    Add to Cart
+  </button>
+</div>
+@endif
+
+
                   <div class="product-single__addtolinks">
                   @php
             $wishlistItem = null;
@@ -758,76 +770,101 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const token = document.querySelector('meta[name="csrf-token"]')?.content;
+document.addEventListener('DOMContentLoaded', () => {
+  const token = document.querySelector('meta[name="csrf-token"]')?.content;
 
-    document.querySelectorAll('.js-cart-toggle').forEach(button => {
-        button.addEventListener('click', async function () {
-            const id = this.dataset.productId;
-            const name = this.dataset.name;
-            const price = this.dataset.price;
-            const action = this.dataset.action;
-            const rowId = this.dataset.rowId;
-            const addRoute = this.dataset.addRoute;
+  // Fixed quantity control with proper event handling
+  document.querySelectorAll('.qty-control__increase, .qty-control__reduce').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopImmediatePropagation(); // This prevents multiple handlers from executing
+      
+      const container = this.closest('.qty-control');
+      const input = container.querySelector('.qty-control__number');
+      let currentValue = parseInt(input.value) || 1;
+      
+      if (this.classList.contains('qty-control__increase')) {
+        input.value = currentValue + 1;
+      } 
+      else if (this.classList.contains('qty-control__reduce') && currentValue > 1) {
+        input.value = currentValue - 1;
+      }
+      
+      // Manually trigger input event in case other code listens for it
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }, { once: false, capture: true }); // Important options
+  });
 
-            const route = action === 'add'
-                ? addRoute
-                : `/cart/remove/${rowId}`;
+  // Add to cart button click handler
+  document.querySelectorAll('.js-cart-toggle').forEach(button => {
+    button.addEventListener('click', async function() {
+      const id = this.dataset.productId;
+      const name = this.dataset.name;
+      const price = this.dataset.price;
+      const action = this.dataset.action;
+      const rowId = this.dataset.rowId;
+      const addRoute = this.dataset.addRoute;
 
-            const method = action === 'add' ? 'POST' : 'DELETE';
+      const container = this.closest('.product-single__addtocart');
+      const qtyInput = container?.querySelector('.qty-control__number');
+      const quantity = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
 
-            const body = action === 'add'
-                ? JSON.stringify({ id, name, price, quantity: 1 })
-                : null;
+      const route = action === 'add' ? addRoute : `/cart/remove/${rowId}`;
+      const method = action === 'add' ? 'POST' : 'DELETE';
 
-            try {
-                const response = await fetch(route, {
-                    method,
-                    headers: {
-                        'X-CSRF-TOKEN': token,
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body
-                });
+      const body = action === 'add' 
+        ? JSON.stringify({ id, name, price, quantity }) 
+        : null;
 
-                if (!response.ok) throw new Error("Request failed");
-
-                const result = await response.json();
-
-                this.dataset.action = action === 'add' ? 'remove' : 'add';
-                this.dataset.rowId = action === 'add' ? (result.id ?? '') : '';
-                this.title = action === 'add' ? 'Remove from Cart' : 'Add to Cart';
-                this.textContent = action === 'add' ? 'Remove from Cart' : 'Add to Cart';
-
-                this.classList.toggle('filled', action === 'add');
-
-                showToast(action === 'add' ? 'Added to Cart' : 'Removed from Cart');
-
-                const countSpan = document.querySelector('#cart-count');
-                if (countSpan) {
-                    countSpan.textContent = result.cartCount;
-                    countSpan.style.display = result.cartCount > 0 ? 'inline-block' : 'none';
-                }
-            } catch (err) {
-                console.error(err);
-                showToast('Network error', true);
-            }
+      try {
+        const response = await fetch(route, {
+          method,
+          headers: {
+            'X-CSRF-TOKEN': token,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body
         });
+
+        if (!response.ok) throw new Error("Request failed");
+
+        const result = await response.json();
+
+        // Update button state
+        this.dataset.action = action === 'add' ? 'remove' : 'add';
+        this.dataset.rowId = action === 'add' ? (result.id ?? '') : '';
+        this.title = action === 'add' ? 'Remove from Cart' : 'Add to Cart';
+        this.textContent = action === 'add' ? 'Remove from Cart' : 'Add to Cart';
+        this.classList.toggle('filled', action === 'add');
+
+        showToast(action === 'add' ? 'Added to Cart' : 'Removed from Cart');
+
+        // Update cart count
+        const countSpan = document.querySelector('#cart-count');
+        if (countSpan) {
+          countSpan.textContent = result.cartCount;
+          countSpan.style.display = result.cartCount > 0 ? 'inline-block' : 'none';
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Network error', true);
+      }
     });
+  });
 
-    function showToast(message, isError = false) {
-        const toast = document.createElement('div');
-        toast.innerText = message;
-        toast.className = `wishlist-toast ${isError ? 'error' : 'success'}`;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.classList.add('show'), 100);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 2000);
-    }
+  function showToast(message, isError = false) {
+    const toast = document.createElement('div');
+    toast.innerText = message;
+    toast.className = `wishlist-toast ${isError ? 'error' : 'success'}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 100);
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 2000);
+  }
 });
-
 </script>
+
 @endpush

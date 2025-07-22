@@ -538,7 +538,7 @@
     });
   </script>
 
- <script>
+ <!-- <script>
 document.addEventListener('DOMContentLoaded', function () {
     const token = document.querySelector('meta[name="csrf-token"]').content;
 
@@ -615,7 +615,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 2000);
     }
 });
-</script>
+</script> -->
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {

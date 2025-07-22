@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\AddressController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WishlistController;
@@ -23,6 +25,20 @@ Route::put('/cart/increase-quantity/{rowId}', [CartController::class, 'increase_
 Route::put('/cart/decrease-quantity/{rowId}', [CartController::class, 'decrease_cart_quantity'])->name('cart.qty.decrease');
 Route::delete('/cart/remove/{rowId}', [CartController::class, 'remove_item'])->name('cart.remove');
 Route::delete('/cart/clear', [CartController::class, 'empty_cart'])->name('cart.empty');
+    Route::get('/checkout', [PaymentController::class, 'showCheckout'])->name('checkout.index');
+    Route::post('/checkout/place', [PaymentController::class, 'placeOrder'])->name('checkout.place');
+    
+    // Order confirmation
+// في ملف routes/web.php
+Route::get('/order/confirmation/{order}', [PaymentController::class, 'orderConfirmation'])
+    ->name('order.confirmation')
+    ->middleware('auth');    
+    // Stripe payment routes
+    Route::get('/payment/stripe/{order}', [PaymentController::class, 'showStripeForm'])->name('payment.stripe.form');
+    Route::post('/payment/process', [PaymentController::class, 'processStripe'])->name('payment.process');
+    
+    // Cancel order
+    Route::post('/order/{order}/cancel', [PaymentController::class, 'cancelOrder'])->name('order.cancel');
 
 Route::post('/wishlist/add', [WishlistController::class, 'add_to_wishlist'])->name('wishlist.add');
 Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
@@ -37,6 +53,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/account/details', [UserController::class, 'details'])->name('user.details');
     Route::put('/account/details/update', [UserController::class, 'updateDetails'])->name('user.update.details');
     Route::put('/account/password/update', [UserController::class, 'updatePassword'])->name('user.update.password');
+    Route::get('/account-orders', [UserController::class, 'orders'])->name('user.orders');
+    Route::get('/account-orders/{order}', [UserController::class, 'orderDetails'])->name('user.order.details');
+    Route::resource('addresses', AddressController::class);
+
 });
 
 Route::middleware(['auth', AuthAdmin::class])->group(function(){
@@ -65,6 +85,8 @@ Route::middleware(['auth', AuthAdmin::class])->group(function(){
     Route::get('/admin/settings', [AdminController::class, 'settings'])->name('admin.settings');
     Route::put('/admin/settings/account/details/update', [AdminController::class, 'updateDetails'])->name('admin.update.details');
     Route::put('/admin/settings/account/password/update', [AdminController::class, 'updatePassword'])->name('admin.update.password');
+
+    Route::get('admin/orders/{id}', [AdminController::class, 'order_show'])->name('admin.orders.show');
 
 
 });

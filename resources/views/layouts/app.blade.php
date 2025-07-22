@@ -695,9 +695,9 @@
   <script src="{{ asset('assets/js/theme.js') }}"></script>
   <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const buttons = document.querySelectorAll('.js-wishlist-toggle');
+    const wishlistButtons = document.querySelectorAll('.js-wishlist-toggle');
 
-    buttons.forEach(button => {
+    wishlistButtons.forEach(button => {
         button.addEventListener('click', async function (e) {
             e.preventDefault();
 
@@ -760,9 +760,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const buttons = document.querySelectorAll('.js-wishlist-toggle');
+    const cartButtons = document.querySelectorAll('.js-cart-toggle');
 
-    buttons.forEach(button => {
+    cartButtons.forEach(button => {
         button.addEventListener('click', async function (e) {
             e.preventDefault();
 
@@ -810,8 +810,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const countSpan = document.querySelector('#cart-count');
                 if (countSpan) {
-                    countSpan.textContent = result.CartCount;
-                    countSpan.style.display = result.CartCount > 0 ? 'inline-block' : 'none';
+                    countSpan.textContent = result.cartCount;
+                    countSpan.style.display = result.cartCount > 0 ? 'inline-block' : 'none';
                 }
 
             } catch (err) {
@@ -821,6 +821,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
 </script>
   @stack('scripts')
 </body>

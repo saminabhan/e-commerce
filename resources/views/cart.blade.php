@@ -144,7 +144,7 @@
                         </div>
                         <div class="mobile_fixed-btn_wrapper">
                             <div class="button-wrapper container">
-                                <a href="#" class="btn btn-primary btn-checkout">PROCEED TO CHECKOUT</a>
+                                <a href="{{ route('checkout.index') }}" class="btn btn-primary btn-checkout">PROCEED TO CHECKOUT</a>
                             </div>
                         </div>
                     </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Order;
 use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -17,10 +18,29 @@ use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
-    public function index()
-    {
-        return view('admin.index');
-    }
+   public function index()
+{
+    $orders = Order::with('items', 'user')->latest()->get();
+
+    return view('admin.index', [
+        'totalOrders' => $orders->count(),
+        'totalAmount' => $orders->sum('total'),
+        'pendingOrders' => $orders->where('status', 'pending')->count(),
+        'pendingAmount' => $orders->where('status', 'pending')->sum('total'),
+        'deliveredOrders' => $orders->where('status', 'delivered')->count(),
+        'deliveredAmount' => $orders->where('status', 'delivered')->sum('total'),
+        'canceledOrders' => $orders->where('status', 'cancelled')->count(),
+        'canceledAmount' => $orders->where('status', 'cancelled')->sum('total'),
+        'recentOrders' => $orders->take(10),
+    ]);
+}
+
+public function order_show($id)
+{
+    $order = Order::findOrFail($id);
+    return view('admin.orders.show', compact('order'));
+}
+
 
     public function brands(){
         $brands = Brand::orderBy('id','DESC')->paginate(10);
