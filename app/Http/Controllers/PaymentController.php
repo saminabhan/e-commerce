@@ -9,6 +9,7 @@ use Stripe\Charge;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Cart;
+use App\Models\OrderTracking;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -21,9 +22,6 @@ class PaymentController extends Controller
         $this->middleware('auth');
     }
 
-    /**
-     * Show checkout page
-     */
 public function showCheckout()
 {
     $cartItems = Cart::where('user_id', Auth::id())->get();
@@ -47,12 +45,9 @@ public function showCheckout()
     ]);
 }
 
-    /**
-     * Place order
-     */
+
 public function placeOrder(Request $request)
 {
-    // التحقق من طريقة الدفع أولاً
     $request->validate([
         'payment_method' => 'required|in:cash_on_delivery,bank_transfer,check_payment,stripe',
     ]);
@@ -60,7 +55,6 @@ public function placeOrder(Request $request)
     $useExistingAddress = $request->filled('selected_address_id') && $request->selected_address_id !== 'new';
 
     if ($useExistingAddress) {
-        // استخدام العنوان الموجود
         $address = Address::where('user_id', Auth::id())
                           ->where('id', $request->selected_address_id)
                           ->firstOrFail();
@@ -76,7 +70,6 @@ public function placeOrder(Request $request)
             'landmark' => $address->landmark,
         ];
     } else {
-        // التحقق من البيانات الجديدة
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
@@ -105,7 +98,6 @@ public function placeOrder(Request $request)
         $lastInvoiceNumber = Order::where('user_id', $user->id)->max('user_invoice_number');
         $nextInvoiceNumber = $lastInvoiceNumber ? $lastInvoiceNumber + 1 : 1;
 
-        // إنشاء الطلب
         $order = Order::create([
             'user_id' => $user->id,
             'user_invoice_number' => $nextInvoiceNumber,
@@ -126,7 +118,13 @@ public function placeOrder(Request $request)
 
         ]);
 
-        // حفظ العنوان الجديد فقط إذا لم يكن موجوداً
+        OrderTracking::create([
+        'order_id' => $order->id,
+        'status' => 'pending',
+        'note' => 'Order received',
+        'tracked_at' => now(),
+        ]);
+
         if (!$useExistingAddress) {
             Address::create([
                 'user_id' => $user->id,
@@ -141,7 +139,6 @@ public function placeOrder(Request $request)
             ]);
         }
 
-        // إضافة عناصر الطلب
         foreach ($cartItems as $item) {
             OrderItem::create([
                 'order_id' => $order->id,
@@ -152,12 +149,10 @@ public function placeOrder(Request $request)
             ]);
         }
 
-        // مسح السلة
         Cart::where('user_id', Auth::id())->delete();
 
         DB::commit();
 
-        // توجيه المستخدم حسب طريقة الدفع
         return match ($request->payment_method) {
             'cash_on_delivery', 'bank_transfer', 'check_payment' =>
                 redirect()->route('order.confirmation', $order->id)->with('success', 'Order placed successfully!'),
@@ -177,12 +172,9 @@ public function placeOrder(Request $request)
     }
 }
 
-    /**
-     * Show Stripe payment form
-     */
+
     public function showStripeForm(Order $order)
     {
-        // Security checks
         if ($order->user_id !== Auth::id()) {
             abort(403, 'Unauthorized access to order.');
         }
@@ -200,9 +192,7 @@ public function placeOrder(Request $request)
         return view('payment.stripe', compact('order'));
     }
 
-    /**
-     * Process Stripe payment
-     */
+
     public function processStripe(Request $request)
     {
         $validated = $request->validate([
@@ -212,7 +202,6 @@ public function placeOrder(Request $request)
 
         $order = Order::findOrFail($validated['order_id']);
 
-        // Security checks
         if ($order->user_id !== Auth::id()) {
             abort(403, 'Unauthorized access to order.');
         }
@@ -223,12 +212,10 @@ public function placeOrder(Request $request)
         }
 
         try {
-            // Set Stripe API key
             Stripe::setApiKey(config('services.stripe.secret'));
 
-            // Create charge
             $charge = Charge::create([
-                'amount' => intval($order->total * 100), // Convert to cents
+                'amount' => intval($order->total * 100),
                 'currency' => 'usd',
                 'description' => 'Order Payment #' . $order->id,
                 'source' => $validated['stripeToken'],
@@ -239,7 +226,6 @@ public function placeOrder(Request $request)
                 ]
             ]);
 
-            // Check if charge was successful
             if ($charge->status === 'succeeded') {
                 $order->update([
                     'status' => 'paid',
@@ -266,7 +252,6 @@ public function placeOrder(Request $request)
             }
 
         } catch (\Stripe\Exception\CardException $e) {
-            // Card was declined
             Log::error('Stripe Card Exception', [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
@@ -315,12 +300,10 @@ public function placeOrder(Request $request)
 
 public function orderConfirmation(Order $order)
 {
-    // تحقق من ملكية الطلب
     if ($order->user_id !== Auth::id()) {
         abort(403, 'Unauthorized access to order.');
     }
 
-    // تحقق من صلاحية الرابط
     if ($order->is_confirmed) {
         abort(403, 'This order has already been confirmed.');
     }
@@ -329,7 +312,6 @@ public function orderConfirmation(Order $order)
         abort(403, 'This confirmation link has expired.');
     }
 
-    // علّم الطلب كمؤكد
     $order->update(['is_confirmed' => true]);
 
     $order->load('items');

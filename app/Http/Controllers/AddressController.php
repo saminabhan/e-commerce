@@ -7,20 +7,17 @@ use App\Models\Address;
 
 class AddressController extends Controller
 {
-    // عرض قائمة العناوين
     public function index()
     {
         $addresses = Address::orderBy('is_default', 'desc')->latest()->get();
         return view('addresses.index', compact('addresses'));
     }
 
-    // عرض صفحة إضافة عنوان جديد
     public function create()
     {
         return view('addresses.create');
     }
 
-    // حفظ العنوان الجديد
     public function store(Request $request)
     {
         $request->validate([
@@ -36,7 +33,6 @@ class AddressController extends Controller
         ]);
 
         if ($request->has('is_default') && $request->is_default) {
-            // إزالة العلامة من العناوين الأخرى
             Address::where('is_default', true)->update(['is_default' => false]);
         }
 
@@ -45,13 +41,11 @@ class AddressController extends Controller
         return redirect()->route('addresses.index')->with('success', 'Address added successfully');
     }
 
-    // صفحة تعديل عنوان
     public function edit(Address $address)
     {
         return view('addresses.edit', compact('address'));
     }
 
-    // تحديث العنوان
     public function update(Request $request, Address $address)
     {
         $request->validate([
@@ -75,7 +69,6 @@ class AddressController extends Controller
         return redirect()->route('addresses.index')->with('success', 'Address updated successfully');
     }
 
-    // حذف العنوان
     public function destroy(Address $address)
     {
         $address->delete();

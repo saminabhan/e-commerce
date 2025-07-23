@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\Admin\CouponController;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\OrderTrackingController;
+use App\Http\Controllers\Admin\SliderController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CartController;
@@ -12,6 +16,7 @@ use App\Http\Controllers\WishlistController;
 use App\Http\Middleware\AuthAdmin;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 
 Auth::routes();
 
@@ -28,16 +33,12 @@ Route::delete('/cart/clear', [CartController::class, 'empty_cart'])->name('cart.
     Route::get('/checkout', [PaymentController::class, 'showCheckout'])->name('checkout.index');
     Route::post('/checkout/place', [PaymentController::class, 'placeOrder'])->name('checkout.place');
     
-    // Order confirmation
-// في ملف routes/web.php
 Route::get('/order/confirmation/{order}', [PaymentController::class, 'orderConfirmation'])
     ->name('order.confirmation')
     ->middleware('auth');    
-    // Stripe payment routes
     Route::get('/payment/stripe/{order}', [PaymentController::class, 'showStripeForm'])->name('payment.stripe.form');
     Route::post('/payment/process', [PaymentController::class, 'processStripe'])->name('payment.process');
     
-    // Cancel order
     Route::post('/order/{order}/cancel', [PaymentController::class, 'cancelOrder'])->name('order.cancel');
 
 Route::post('/wishlist/add', [WishlistController::class, 'add_to_wishlist'])->name('wishlist.add');
@@ -87,6 +88,25 @@ Route::middleware(['auth', AuthAdmin::class])->group(function(){
     Route::put('/admin/settings/account/password/update', [AdminController::class, 'updatePassword'])->name('admin.update.password');
 
     Route::get('admin/orders/{id}', [AdminController::class, 'order_show'])->name('admin.orders.show');
+
+        Route::get('/orders', [OrderController::class, 'index'])->name('admin.orders.index');
+
+        Route::resource('order-tracking', OrderTrackingController::class)->names([
+        'index' => 'admin.order-tracking.index',
+        'create' => 'admin.order-tracking.create',
+        'store' => 'admin.order-tracking.store',
+    ]);
+
+    Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
+        Route::resource('slider', SliderController::class)->names('slider');
+    });
+    Route::resource('coupons', CouponController::class)->names('admin.coupons');
+    
+
+Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
+    Route::resource('users', AdminUserController::class);
+});
+    Route::resource('order-tracking', OrderTrackingController::class)->names('admin.order-tracking');
 
 
 });

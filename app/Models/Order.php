@@ -76,4 +76,9 @@ class Order extends Model
             default => ucwords(str_replace('_', ' ', $this->payment_method))
         };
     }
+    public function trackings()
+    {
+    return $this->hasMany(OrderTracking::class);
+    }
+
 }

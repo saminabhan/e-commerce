@@ -16,7 +16,6 @@ class ContactController extends Controller
 
     public function submit(Request $request)
     {
-        // Validate form data
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:255',
@@ -25,10 +24,8 @@ class ContactController extends Controller
             'message' => 'required|string',
         ]);
     
-        // Send email
         Mail::to('sami.nabhan20@gmail.com')->send(new HelloMail($validated));
     
-        // Return a JSON response
         return response()->json(['message' => 'Email sent successfully!']);
     }
     

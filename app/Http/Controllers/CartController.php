@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderTracking;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 
@@ -26,7 +27,6 @@ public function add_to_cart(Request $request)
         ->first();
 
     if (!$existing) {
-        // إنشاء منتج جديد في السلة
         $item = Cart::create([
             'user_id' => Auth::id(),
             'product_id' => $product->id,
@@ -35,8 +35,6 @@ public function add_to_cart(Request $request)
             'price' => $product->sale_price ?? $product->regular_price,
         ]);
     } else {
-        // إذا كان المنتج موجود، لا تضيف كمية - فقط أرجع المنتج الموجود
-        // أو يمكنك إرجاع رسالة خطأ
         return response()->json([
             'status' => 'exists',
             'message' => 'Product already in cart',
@@ -159,7 +157,6 @@ public function placeOrder(Request $request)
 
     Cart::where('user_id', Auth::id())->delete();
 
-    // Redirect to payment
     return redirect()->route('payment.test', $order->id);
 }
 
