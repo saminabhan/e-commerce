@@ -96,7 +96,7 @@ public function orderDetails(Order $order)
         abort(403);
     }
 
-    $order->load('items.product'); // لو محتاج المنتج أيضًا
+    $order->load(['items.product', 'tracking']); // جلب التتبع أيضاً
 
     return view('user.order-details', compact('order'));
 }

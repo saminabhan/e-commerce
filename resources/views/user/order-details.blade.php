@@ -187,6 +187,32 @@
                         </div>
                     </div>
 
+                    <h3>Tracking History</h3>
+
+@if($order->tracking->count())
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Status</th>
+                <th>Note</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($order->tracking as $track)
+                <tr>
+                    <td>{{ ucfirst($track->status) }}</td>
+                    <td>{{ $track->note ?? '-' }}</td>
+                    <td>{{ \Carbon\Carbon::parse($track->tracked_at)->format('Y-m-d H:i') }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+@else
+    <p>No tracking history available for this order.</p>
+@endif
+
+
                     <!-- Back to Orders Button -->
                     <div class="mt-4">
                         <a href="{{ route('user.orders') }}" class="btn btn-secondary">

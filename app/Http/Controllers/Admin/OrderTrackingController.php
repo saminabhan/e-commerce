@@ -11,6 +11,7 @@ class OrderTrackingController extends Controller
 {
     public function index() {
         $trackings = OrderTracking::with('order')->latest()->paginate(20);
+        
         return view('admin.order-tracking.index', compact('trackings'));
     }
 

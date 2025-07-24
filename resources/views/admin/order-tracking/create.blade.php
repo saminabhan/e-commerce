@@ -41,9 +41,17 @@
                 @csrf
 
                 <div class="mb-3">
-                    <label for="order_id" class="form-label">Order ID <span class="text-danger">*</span></label>
-                    <input type="number" name="order_id" id="order_id" class="form-control" value="{{ old('order_id') }}" required>
+                    <label for="order_id" class="form-label">Order <span class="text-danger">*</span></label>
+                    <select name="order_id" id="order_id" class="form-control" required>
+                        <option value="" disabled selected>Select an order</option>
+                        @foreach($orders as $order)
+                            <option value="{{ $order->id }}" {{ old('order_id') == $order->id ? 'selected' : '' }}>
+                                #{{ $order->id }} - {{ $order->name ?? 'Customer' }} - {{ $order->created_at->format('Y-m-d') }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
+
 
                 <div class="mb-3">
                     <label for="status" class="form-label">Status <span class="text-danger">*</span></label>

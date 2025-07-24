@@ -98,6 +98,20 @@ public function placeOrder(Request $request)
         $lastInvoiceNumber = Order::where('user_id', $user->id)->max('user_invoice_number');
         $nextInvoiceNumber = $lastInvoiceNumber ? $lastInvoiceNumber + 1 : 1;
 
+        // تحقق من الكميات أولاً
+        foreach ($cartItems as $item) {
+            $product = Product::find($item->product_id);
+            if (!$product) {
+                DB::rollBack();
+                return redirect()->route('checkout.index')->with('error', "Product not found.");
+            }
+
+            if ($product->quantity < $item->quantity) {
+                DB::rollBack();
+                return redirect()->route('checkout.index')->with('error', "Insufficient quantity for product: {$product->name}.");
+            }
+        }
+
         $order = Order::create([
             'user_id' => $user->id,
             'user_invoice_number' => $nextInvoiceNumber,
@@ -115,14 +129,13 @@ public function placeOrder(Request $request)
             'status' => $request->payment_method === 'cash_on_delivery' ? 'pending' : 'unpaid',
             'payment_method' => $request->payment_method,
             'confirmation_expires_at' => now()->addMinutes(5),
-
         ]);
 
         OrderTracking::create([
-        'order_id' => $order->id,
-        'status' => 'pending',
-        'note' => 'Order received',
-        'tracked_at' => now(),
+            'order_id' => $order->id,
+            'status' => 'pending',
+            'note' => 'Order received',
+            'tracked_at' => now(),
         ]);
 
         if (!$useExistingAddress) {
@@ -147,6 +160,10 @@ public function placeOrder(Request $request)
                 'quantity' => $item->quantity,
                 'price' => $item->price,
             ]);
+
+            // خصم الكمية من المنتج
+            $product = Product::find($item->product_id);
+            $product->decrement('quantity', $item->quantity);
         }
 
         Cart::where('user_id', Auth::id())->delete();
@@ -171,6 +188,7 @@ public function placeOrder(Request $request)
         return redirect()->route('checkout.index')->with('error', 'Something went wrong. Please try again.');
     }
 }
+
 
 
     public function showStripeForm(Order $order)
@@ -320,22 +338,31 @@ public function orderConfirmation(Order $order)
 }
 
 
-    public function cancelOrder(Order $order)
-    {
-        if ($order->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized access to order.');
-        }
-
-        if ($order->status === 'paid') {
-            return redirect()->route('order.confirmation', $order->id)
-                ->with('error', 'Cannot cancel a paid order.');
-        }
-
-        $order->update(['status' => 'cancelled']);
-
-        return redirect()->route('user.orders')
-            ->with('success', 'Order cancelled successfully.');
+public function cancelOrder(Order $order)
+{
+    if ($order->user_id !== Auth::id()) {
+        abort(403, 'Unauthorized access to order.');
     }
+
+    if ($order->status === 'paid') {
+        return redirect()->route('order.confirmation', $order->id)
+            ->with('error', 'Cannot cancel a paid order.');
+    }
+
+    // استرجاع الكميات
+    foreach ($order->orderItems as $item) {
+        $product = Product::find($item->product_id);
+        if ($product) {
+            $product->quantity += $item->quantity;
+            $product->save();
+        }
+    }
+
+    $order->update(['status' => 'cancelled']);
+
+    return redirect()->route('user.orders')
+        ->with('success', 'Order cancelled successfully and stock restored.');
+}
 
     
 }

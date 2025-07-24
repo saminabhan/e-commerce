@@ -37,15 +37,27 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($trackings as $track)
-                            <tr>
-                                <td>{{ $track->order_id }}</td>
-                                <td>{{ ucfirst($track->status) }}</td>
-                                <td>{{ $track->note ?? '-' }}</td>
-                                <td>{{ $track->tracked_at->format('Y-m-d H:i') }}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
+@foreach($trackings as $track)
+<tr>
+    <td>
+        {{-- رابط لصفحة تفاصيل الطلب (إذا موجودة عندك route 'admin.orders.show') --}}
+        @if($track->order)
+            <a href="{{ route('admin.orders.show', $track->order->id) }}">
+                #{{ $track->order->id }}
+            </a><br>
+            {{ $track->order->name ?? 'Customer' }}<br>
+            <small class="text-muted">{{ optional($track->order->created_at)->format('Y-m-d') }}</small>
+        @else
+            N/A
+        @endif
+    </td>
+    <td>{{ ucfirst($track->status) }}</td>
+    <td>{{ $track->note ?? '-' }}</td>
+    <td>{{ $track->tracked_at->format('Y-m-d H:i') }}</td>
+</tr>
+@endforeach
+</tbody>
+
                     </table>
                 @else
                     <p class="text-center py-4">No tracking records found.</p>
