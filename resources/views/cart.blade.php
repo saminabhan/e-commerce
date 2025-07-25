@@ -99,56 +99,90 @@
                         </tbody>
                     </table>
 
-                    <div class="cart-table-footer">
-                        <form action="#" class="position-relative bg-body">
-                            <input class="form-control" type="text" name="coupon_code" placeholder="Coupon Code">
-                            <input class="btn-link fw-medium position-absolute top-0 end-0 h-100 px-4" type="submit" value="APPLY COUPON">
-                        </form>
-                        <form method="POST" action="{{ route('cart.empty') }}">
-                            @csrf
-                            @method('DELETE')
-                            <button class="btn btn-light" type="submit">CLEAR CART</button>
-                        </form>
-                    </div>
+                    {{-- ... باقي الهيكل كما هو --}}
+<div class="cart-table-footer">
+   <form method="POST" action="{{ route('cart.applyCoupon') }}" class="position-relative bg-body">
+    @csrf
+<input class="form-control @error('coupon_code') is-invalid @enderror" 
+       type="text" 
+       name="coupon_code" 
+       placeholder="Coupon Code" 
+       value="{{ old('coupon_code', session('coupon')['code'] ?? '') }}">
+    
+    <input class="btn-link fw-medium position-absolute top-0 end-0 h-100 px-4" 
+           type="submit" 
+           value="APPLY COUPON">
+    
+    @error('coupon_code')
+        <div class="invalid-feedback d-block mt-1">
+            {{ $message }}
+        </div>
+    @enderror
+</form>
+
+
+    @if(session()->has('coupon'))
+        <form method="POST" action="{{ route('cart.removeCoupon') }}" class="mt-2">
+            @csrf
+            <button type="submit" class="btn btn-danger btn-sm">Remove Coupon</button>
+        </form>
+    @endif
+
+    <form method="POST" action="{{ route('cart.empty') }}">
+        @csrf
+        @method('DELETE')
+        <button class="btn btn-light mt-2" type="submit">CLEAR CART</button>
+    </form>
+</div>
+
                 </div>
 
                 @php
-                    $vat = $subTotal * 0.15;
-                    $total = $subTotal + $vat;
-                @endphp
+    $vat = ($subTotal - ($discount ?? 0)) * 0.15;
+    $total = ($subTotal - ($discount ?? 0)) + $vat;
+@endphp
 
-                <div class="shopping-cart__totals-wrapper">
-                    <div class="sticky-content">
-                        <div class="shopping-cart__totals">
-                            <h3>Cart Totals</h3>
-                            <table class="cart-totals">
-                                <tbody>
-                                    <tr>
-                                        <th>Subtotal</th>
-                                        <td>${{ number_format($subTotal, 2) }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Shipping</th>
-                                        <td>Free</td>
-                                    </tr>
-                                    <tr>
-                                        <th>VAT</th>
-                                        <td>${{ number_format($vat, 2) }}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Total</th>
-                                        <td>${{ number_format($total, 2) }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="mobile_fixed-btn_wrapper">
-                            <div class="button-wrapper container">
-                                <a href="{{ route('checkout.index') }}" class="btn btn-primary btn-checkout">PROCEED TO CHECKOUT</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<div class="shopping-cart__totals-wrapper">
+    <div class="sticky-content">
+        <div class="shopping-cart__totals">
+            <h3>Cart Totals</h3>
+            <table class="cart-totals">
+                <tbody>
+                    <tr>
+                        <th>Subtotal</th>
+                        <td>${{ number_format($subTotal, 2) }}</td>
+                    </tr>
+
+                    @if(!empty($coupon))
+                        <tr>
+                            <th>Coupon ({{ $coupon->code }})</th>
+                            <td>- ${{ number_format($discount, 2) }}</td>
+                        </tr>
+                    @endif
+
+                    <tr>
+                        <th>Shipping</th>
+                        <td>Free</td>
+                    </tr>
+                    <tr>
+                        <th>VAT</th>
+                        <td>${{ number_format($vat, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <th>Total</th>
+                        <td>${{ number_format($total, 2) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="mobile_fixed-btn_wrapper">
+            <div class="button-wrapper container">
+                <a href="{{ route('checkout.index') }}" class="btn btn-primary btn-checkout">PROCEED TO CHECKOUT</a>
+            </div>
+        </div>
+    </div>
+</div>
+
             @else
                 <div class="row">
                     <div class="col-md-12 text-center pt-5 pb-5">

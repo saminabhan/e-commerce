@@ -33,6 +33,9 @@ Route::delete('/cart/clear', [CartController::class, 'empty_cart'])->name('cart.
     Route::get('/checkout', [PaymentController::class, 'showCheckout'])->name('checkout.index');
     Route::post('/checkout/place', [PaymentController::class, 'placeOrder'])->name('checkout.place');
     
+Route::post('/cart/apply-coupon', [CartController::class, 'applyCoupon'])->name('cart.applyCoupon');
+Route::post('/cart/remove-coupon', [CartController::class, 'removeCoupon'])->name('cart.removeCoupon');
+
 Route::get('/order/confirmation/{order}', [PaymentController::class, 'orderConfirmation'])
     ->name('order.confirmation')
     ->middleware('auth');    

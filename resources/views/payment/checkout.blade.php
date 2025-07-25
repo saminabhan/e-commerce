@@ -185,25 +185,34 @@
               </table>
 
               <table class="checkout-totals">
-                <tbody>
-                  <tr>
-                    <th>SUBTOTAL</th>
-                    <td align="right">${{ number_format($subTotal, 2) }}</td>
-                  </tr>
-                  <tr>
-                    <th>SHIPPING</th>
-                    <td align="right">Free</td>
-                  </tr>
-                  <tr>
-                    <th>VAT (15%)</th>
-                    <td align="right">${{ number_format($vat, 2) }}</td>
-                  </tr>
-                  <tr class="total-row">
-                    <th><strong>TOTAL</strong></th>
-                    <td align="right"><strong>${{ number_format($total, 2) }}</strong></td>
-                  </tr>
-                </tbody>
-              </table>
+    <tbody>
+        <tr>
+            <th>SUBTOTAL</th>
+            <td align="right">${{ number_format($subTotal, 2) }}</td>
+        </tr>
+        <tr>
+            <th>SHIPPING</th>
+            <td align="right">Free</td>
+        </tr>
+        <tr>
+            <th>VAT (15%)</th>
+            <td align="right">${{ number_format($vat, 2) }}</td>
+        </tr>
+
+        @if(session()->has('coupon') && $discount > 0)
+        <tr>
+<th>DISCOUNT ({{ strtoupper($coupon?->code ?? '') }})</th>
+            <td align="right">- ${{ number_format($discount, 2) }}</td>
+        </tr>
+        @endif
+
+        <tr class="total-row">
+            <th><strong>TOTAL</strong></th>
+            <td align="right"><strong>${{ number_format($total, 2) }}</strong></td>
+        </tr>
+    </tbody>
+</table>
+
             </div>
 
             <div class="checkout__payment-methods">
@@ -283,13 +292,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // التحقق من اختيار عنوان أو إدخال عنوان جديد
-        const addressSelect = document.getElementById('selected_address_id');
-        if (addressSelect && !addressSelect.value) {
-            e.preventDefault();
-            alert('Please select an address or add a new one.');
-            return;
-        }
 
         // التحقق من طريقة الدفع
         const paymentMethod = document.querySelector('input[name="payment_method"]:checked');

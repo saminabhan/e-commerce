@@ -79,6 +79,9 @@
               <tr><th>SUBTOTAL</th><td>${{ number_format($order->subtotal, 2) }}</td></tr>
               <tr><th>SHIPPING</th><td>Free shipping</td></tr>
               <tr><th>VAT</th><td>${{ number_format($order->vat, 2) }}</td></tr>
+              @if ($order->discount > 0)
+              <tr><th>DISCOUNT</th><td>- ${{ number_format($order->discount, 2) }}</td></tr>
+              @endif
               <tr><th>TOTAL</th><td>${{ number_format($order->total, 2) }}</td></tr>
             </tbody>
           </table>

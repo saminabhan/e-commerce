@@ -69,23 +69,33 @@
                     <h4>Order Summary</h4>
                     <div class="order-details">
                         <div class="order-info">
-                            <div class="order-info__item">
-                                <label>Order Number</label>
-                                <span>#{{ $order->id }}</span>
-                            </div>
-                            <div class="order-info__item">
-                                <label>Subtotal</label>
-                                <span>${{ number_format($order->subtotal, 2) }}</span>
-                            </div>
-                            <div class="order-info__item">
-                                <label>VAT (15%)</label>
-                                <span>${{ number_format($order->vat, 2) }}</span>
-                            </div>
-                            <div class="order-info__item total">
-                                <label><strong>Total</strong></label>
-                                <span><strong>${{ number_format($order->total, 2) }}</strong></span>
-                            </div>
-                        </div>
+    <div class="order-info__item">
+        <label>Order Number</label>
+        <span>#{{ $order->id }}</span>
+    </div>
+    <div class="order-info__item">
+        <label>Subtotal</label>
+        <span>${{ number_format($order->subtotal, 2) }}</span>
+    </div>
+
+    {{-- ✅ خصم الكوبون --}}
+    @if($order->discount > 0)
+    <div class="order-info__item">
+        <label>Coupon Discount</label>
+        <span>-${{ number_format($order->discount, 2) }}</span>
+    </div>
+    @endif
+
+    <div class="order-info__item">
+        <label>VAT (15%)</label>
+        <span>${{ number_format($order->vat, 2) }}</span>
+    </div>
+    <div class="order-info__item total">
+        <label><strong>Total</strong></label>
+        <span><strong>${{ number_format($order->total, 2) }}</strong></span>
+    </div>
+</div>
+
                     </div>
                 </div>
             </div>

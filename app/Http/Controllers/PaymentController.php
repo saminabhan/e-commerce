@@ -9,11 +9,13 @@ use Stripe\Charge;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Cart;
+use App\Models\Coupon;
 use App\Models\OrderTracking;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 
 class PaymentController extends Controller
 {
@@ -31,16 +33,41 @@ public function showCheckout()
     }
 
     $subTotal = $cartItems->sum(fn($item) => $item->price * $item->quantity);
-    $vat = $subTotal * 0.15;
-    $total = $subTotal + $vat;
+
+    $discount = 0;
+    $coupon = null;
+
+    if (session()->has('coupon')) {
+        $couponCode = session('coupon');
+        $coupon = Coupon::where('code', $couponCode)
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                      ->orWhere('expires_at', '>', now());
+            })
+            ->first();
+
+        if ($coupon) {
+            if ($coupon->type === 'percent') {
+                $discount = ($subTotal * $coupon->discount) / 100;
+            } else {
+                $discount = $coupon->discount;
+            }
+        }
+    }
+
+    $subtotalAfterDiscount = max($subTotal - $discount, 0); // ضمان عدم وجود قيمة سالبة
+    $vat = $subtotalAfterDiscount * 0.15;
+    $total = $subtotalAfterDiscount + $vat;
 
     $addresses = Address::where('user_id', Auth::id())->get();
 
     return view('payment.checkout', [
         'items' => $cartItems,
         'subTotal' => $subTotal,
+        'discount' => $discount,
         'vat' => $vat,
         'total' => $total,
+        'coupon' => $coupon,
         'addresses' => $addresses,
     ]);
 }
@@ -89,8 +116,30 @@ public function placeOrder(Request $request)
     }
 
     $subTotal = $cartItems->sum(fn($item) => $item->price * $item->quantity);
-    $vat = $subTotal * 0.15;
-    $total = $subTotal + $vat;
+
+    // === خصم الكوبون ===
+    $discount = 0;
+    $coupon = null;
+
+    if (session()->has('coupon')) {
+        $couponCode = session('coupon');
+        $coupon = Coupon::where('code', $couponCode)
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                      ->orWhere('expires_at', '>', now());
+            })
+            ->first();
+
+        if ($coupon) {
+            $discount = $coupon->type === 'percent'
+                ? ($subTotal * $coupon->discount) / 100
+                : $coupon->discount;
+        }
+    }
+
+    $subtotalAfterDiscount = max($subTotal - $discount, 0);
+    $vat = $subtotalAfterDiscount * 0.15;
+    $total = $subtotalAfterDiscount + $vat;
 
     try {
         DB::beginTransaction();
@@ -124,6 +173,7 @@ public function placeOrder(Request $request)
             'locality' => $validated['locality'],
             'landmark' => $validated['landmark'] ?? null,
             'subtotal' => $subTotal,
+            'discount' => $discount, // ✅ تم إضافة الخصم
             'vat' => $vat,
             'total' => $total,
             'status' => $request->payment_method === 'cash_on_delivery' ? 'pending' : 'unpaid',
@@ -161,12 +211,12 @@ public function placeOrder(Request $request)
                 'price' => $item->price,
             ]);
 
-            // خصم الكمية من المنتج
             $product = Product::find($item->product_id);
             $product->decrement('quantity', $item->quantity);
         }
 
         Cart::where('user_id', Auth::id())->delete();
+        Session::forget('coupon'); // ✅ إزالة الكوبون بعد الطلب
 
         DB::commit();
 
@@ -188,6 +238,7 @@ public function placeOrder(Request $request)
         return redirect()->route('checkout.index')->with('error', 'Something went wrong. Please try again.');
     }
 }
+
 
 
 

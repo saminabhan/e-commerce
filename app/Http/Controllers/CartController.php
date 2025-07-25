@@ -4,18 +4,81 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Cart;
+use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderTracking;
 use App\Models\Product;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
+
 
 class CartController extends Controller
 {
     public function index()
     {
         $items = Cart::where('user_id', Auth::id())->get();
-        return view('cart', compact('items'));
+
+        $subTotal = $items->sum(function ($item) {
+            return $item->price * $item->quantity;
+        });
+
+        $discount = 0;
+        $coupon = null;
+
+        if (Session::has('coupon')) {
+            $code = Session::get('coupon');
+            $coupon = Coupon::where('code', $code)
+                ->where(function ($query) {
+                    $query->whereNull('expires_at')
+                          ->orWhere('expires_at', '>', Carbon::now());
+                })
+                ->first();
+
+            if ($coupon) {
+                $discount = $coupon->type === 'percent'
+                    ? ($subTotal * $coupon->discount / 100)
+                    : $coupon->discount;
+            }
+        }
+
+        $vat = ($subTotal - $discount) * 0.15;
+        $total = ($subTotal - $discount) + $vat;
+
+        return view('cart', compact('items', 'subTotal', 'discount', 'vat', 'total', 'coupon'));
+    }
+
+public function applyCoupon(Request $request)
+{
+    $request->validate([
+        'coupon_code' => 'required|string'
+    ]);
+
+    $coupon = Coupon::whereRaw('BINARY code = ?', [$request->coupon_code])
+        ->where(function ($query) {
+            $query->whereNull('expires_at')
+                  ->orWhere('expires_at', '>', Carbon::now());
+        })
+        ->first();
+
+    if (!$coupon) {
+        return redirect()->back()->withErrors(['coupon_code' => 'Invalid or expired coupon.']);
+    }
+
+    Session::put('coupon', [
+        'code' => $coupon->code,
+        'discount' => $coupon->discount,
+        'type' => $coupon->type,
+    ]);
+
+    return redirect()->route('cart.index')->with('success', 'Coupon applied successfully.');
+}
+
+    public function removeCoupon()
+    {
+        Session::forget('coupon');
+        return redirect()->route('cart.index')->with('success', 'Coupon removed.');
     }
 
 public function add_to_cart(Request $request)
@@ -159,5 +222,6 @@ public function placeOrder(Request $request)
 
     return redirect()->route('payment.test', $order->id);
 }
+
 
 }

@@ -29,6 +29,7 @@ class Order extends Model
         'transaction_id',
         'is_confirmed',
         'confirmation_expires_at',
+        'discount',
     ];
 
     protected $casts = [

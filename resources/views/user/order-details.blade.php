@@ -177,11 +177,20 @@
                                             <td><strong>VAT (15%):</strong></td>
                                             <td class="text-end">${{ number_format($order->vat, 2) }}</td>
                                         </tr>
+
+                                        @if($order->discount > 0)
+                                        <tr>
+                                            <td><strong>Discount:</strong></td>
+                                            <td class="text-end">- ${{ number_format($order->discount, 2) }}</td>
+                                        </tr>
+                                        @endif
+
                                         <tr class="border-top">
                                             <td><strong>Total:</strong></td>
                                             <td class="text-end"><strong class="h5 text-primary">${{ number_format($order->total, 2) }}</strong></td>
                                         </tr>
                                     </table>
+
                                 </div>
                             </div>
                         </div>
