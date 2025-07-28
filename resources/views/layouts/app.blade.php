@@ -299,21 +299,25 @@
       </a>
     </div>
 
-    <!-- أيقونة السلة (موجودة أصلاً) -->
-    <a href="{{ route('cart.index') }}" class="header-tools__item header-tools__cart js-open-aside" data-aside="cartDrawer">
-      <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <use href="#icon_cart" />
-      </svg>
-       @php
-          $cartCount = \App\Models\Cart::where('user_id', Auth::id())->count();
-      @endphp
+   <!-- الكود المُصحح لأيقونة السلة في الجوال -->
+<a href="{{ route('cart.index') }}" class="header-tools__item header-tools__cart">
+  <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <use href="#icon_cart" />
+  </svg>
+  @php
+     $cartCount = \App\Models\Cart::where('user_id', Auth::id())->count();
+  @endphp
 
-      @if ($cartCount > 0)
-      <span class="cart-amount d-block position-absolute js-cart-items-count">{{ $cartCount }}</span>
-      @else
-      <span class="cart-amount d-block position-absolute js-cart-items-count">0</span>
-      @endif
-    </a>
+  @if ($cartCount > 0)
+      <span id="cart-count-mobile" class="cart-amount d-block position-absolute js-cart-items-count">
+          {{ $cartCount }}
+      </span>
+  @else
+      <span id="cart-count-mobile" class="cart-amount d-block position-absolute js-cart-items-count" style="display:none;">
+          0
+      </span>
+  @endif
+</a>
   </div>
 </div>
 
