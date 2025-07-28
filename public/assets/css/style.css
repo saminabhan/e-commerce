@@ -15575,3 +15575,19 @@ body.coming-soon-page {
 .wishlist-btn.filled svg {
     color: #4062B1; 
 }
+.wishlist-btn {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  color: inherit;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent; /* المهم عالجوال */
+}
+
+.wishlist-btn:focus,
+.wishlist-btn:active {
+  outline: none;
+  box-shadow: none;
+  background-color: transparent;
+  color: inherit;
+}
