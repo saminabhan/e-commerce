@@ -15575,39 +15575,3 @@ body.coming-soon-page {
 .wishlist-btn.filled svg {
     color: #4062B1; 
 }
-
-/* حل نهائي لمشكلة اللون الأزرق في الجوال */
-.wishlist-btn,
-.wishlist-btn:link,
-.wishlist-btn:visited,
-.wishlist-btn:hover,
-.wishlist-btn:active,
-.wishlist-btn:focus {
-    color: #000000 !important;
-    text-decoration: none !important;
-    -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
-    -webkit-tap-highlight-color: transparent !important;
-    outline: none !important;
-}
-
-.wishlist-btn svg,
-.wishlist-btn svg path,
-.wishlist-btn svg use {
-    fill: #000000 !important;
-    color: #000000 !important;
-    stroke: #000000 !important;
-}
-
-/* إزالة جميع التأثيرات الافتراضية للروابط */
-a.wishlist-btn {
-    color: #000000 !important;
-    -webkit-text-fill-color: #000000 !important;
-}
-
-/* للمتصفحات المختلفة */
-@supports (-webkit-touch-callout: none) {
-    .wishlist-btn {
-        -webkit-text-fill-color: #000000 !important;
-        color: #000000 !important;
-    }
-}
