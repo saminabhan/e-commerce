@@ -259,8 +259,6 @@
       max-width: 220px;
     }
   </style>
-  <!-- ابحث عن هذا الجزء في الـ header-mobile -->
-
 
 <div class="header-mobile header_sticky">
     <div class="container d-flex align-items-center h-100">

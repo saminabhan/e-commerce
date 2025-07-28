@@ -30,16 +30,16 @@
         <div id="page" class="">
             <div class="layout-wrap">
 
-                <!-- <div id="preload" class="preload-container">
-    <div class="preloading">
-        <span></span>
-    </div>
-</div> -->
+                <div id="preload" class="preload-container">
+                    <div class="preloading">
+                        <span></span>
+                    </div>
+                </div>
 
                 <div class="section-menu-left">
                     <div class="box-logo">
                         <a href="{{ route('admin.index') }}" id="site-logo-inner">
-                            <img class="" id="logo_header" alt="" src="{{ asset('images/logo/sami-logo.png') }}"
+                            <img class="" id="logo_header_mobile" alt="" src="{{ asset('images/logo/sami-logo.png') }}"
                                 data-light="{{ asset('images/logo/sami-logo.png') }}" data-dark="{{ asset('images/logo/sami-logo.png') }}">
                         </a>
                         <div class="button-show-hide">
