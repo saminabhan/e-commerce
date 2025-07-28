@@ -260,23 +260,24 @@
     }
   </style>
   <!-- ابحث عن هذا الجزء في الـ header-mobile -->
+
+
 <div class="header-mobile header_sticky">
-  <div class="container d-flex align-items-center h-100">
-    <a class="mobile-nav-activator d-block position-relative" href="#">
-      <svg class="nav-icon" width="25" height="18" viewBox="0 0 25 18" xmlns="http://www.w3.org/2000/svg">
-        <use href="#icon_nav" />
-      </svg>
-      <button class="btn-close-lg position-absolute top-0 start-0 w-100"></button>
-    </a>
-
-    <div class="logo">
-      <a href="{{ route('home.index') }}">
-        <img src="{{ asset('assets/images/sami-logo.png') }}" alt="Uomo" class="logo__image d-block" />
+    <div class="container d-flex align-items-center h-100">
+      <a class="mobile-nav-activator d-block position-relative" href="#">
+        <svg class="nav-icon" width="25" height="18" viewBox="0 0 25 18" xmlns="http://www.w3.org/2000/svg">
+          <use href="#icon_nav" />
+        </svg>
+        <button class="btn-close-lg position-absolute top-0 start-0 w-100"></button>
       </a>
-    </div>
 
-    <!-- إضافة أيقونات المستخدم والـ Wishlist للجوال -->
-    <div class="d-flex align-items-center">
+      <div class="logo">
+        <a href="{{ route('home.index') }}">
+          <img src="{{ asset('assets/images/sami-logo.png') }}" alt="Uomo" class="logo__image d-block" />
+        </a>
+      </div>
+
+       <div class="d-flex align-items-center">
       @guest
       <a href="{{route('login')}}" class="header-tools__item me-2">
         <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none"
@@ -298,9 +299,7 @@
       @endguest
       </a>
     </div>
-
-   <!-- الكود المُصحح لأيقونة السلة في الجوال -->
-<a href="{{ route('cart.index') }}" class="header-tools__item header-tools__cart">
+      <a href="{{ route('cart.index') }}" class="header-tools__item header-tools__cart">
   <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
     <use href="#icon_cart" />
   </svg>
@@ -318,8 +317,7 @@
       </span>
   @endif
 </a>
-  </div>
-</div>
+    </div>
 
     <nav
       class="header-mobile__navigation navigation d-flex flex-column w-100 position-absolute top-100 bg-body overflow-auto">
