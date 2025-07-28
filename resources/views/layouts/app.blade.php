@@ -259,28 +259,55 @@
       max-width: 220px;
     }
   </style>
-  <div class="header-mobile header_sticky">
-    <div class="container d-flex align-items-center h-100">
-      <a class="mobile-nav-activator d-block position-relative" href="#">
-        <svg class="nav-icon" width="25" height="18" viewBox="0 0 25 18" xmlns="http://www.w3.org/2000/svg">
-          <use href="#icon_nav" />
-        </svg>
-        <button class="btn-close-lg position-absolute top-0 start-0 w-100"></button>
-      </a>
+  <!-- ابحث عن هذا الجزء في الـ header-mobile -->
+<div class="header-mobile header_sticky">
+  <div class="container d-flex align-items-center h-100">
+    <a class="mobile-nav-activator d-block position-relative" href="#">
+      <svg class="nav-icon" width="25" height="18" viewBox="0 0 25 18" xmlns="http://www.w3.org/2000/svg">
+        <use href="#icon_nav" />
+      </svg>
+      <button class="btn-close-lg position-absolute top-0 start-0 w-100"></button>
+    </a>
 
-      <div class="logo">
-        <a href="{{ route('home.index') }}">
-          <img src="{{ asset('assets/images/sami-logo.png') }}" alt="Uomo" class="logo__image d-block" />
-        </a>
-      </div>
-
-      <a href="{{ route('cart.index') }}" class="header-tools__item header-tools__cart js-open-aside" data-aside="cartDrawer">
-        <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <use href="#icon_cart" />
-        </svg>
-        <span class="cart-amount d-block position-absolute js-cart-items-count">3</span>
+    <div class="logo">
+      <a href="{{ route('home.index') }}">
+        <img src="{{ asset('assets/images/sami-logo.png') }}" alt="Uomo" class="logo__image d-block" />
       </a>
     </div>
+
+    <!-- إضافة أيقونات المستخدم والـ Wishlist للجوال -->
+    <div class="d-flex align-items-center">
+      @guest
+      <a href="{{route('login')}}" class="header-tools__item me-2">
+        <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+          <use href="#icon_user" />
+        </svg>
+      </a>
+      @else
+      <a href="{{ Auth::user()->utype === 'ADM' ? route('admin.index'): route('user.index') }}" class="header-tools__item me-2">
+      <span class="pr-6px">
+       Hi, {{ explode(' ', ucfirst(Auth::user()->name))[0] }}!&nbsp;
+      </span>
+
+        <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+          <use href="#icon_user" />
+        </svg>
+      </a>
+      @endguest
+      </a>
+    </div>
+
+    <!-- أيقونة السلة (موجودة أصلاً) -->
+    <a href="{{ route('cart.index') }}" class="header-tools__item header-tools__cart js-open-aside" data-aside="cartDrawer">
+      <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <use href="#icon_cart" />
+      </svg>
+      <span class="cart-amount d-block position-absolute js-cart-items-count">3</span>
+    </a>
+  </div>
+</div>
 
     <nav
       class="header-mobile__navigation navigation d-flex flex-column w-100 position-absolute top-100 bg-body overflow-auto">
@@ -473,7 +500,7 @@
           @else
           <div class="header-tools__item hover-container">
             <a href="{{ Auth::user()->utype === 'ADM' ? route('admin.index'): route('user.index') }}" class="header-tools__item">
-              <span class="pr-6px">{{ucfirst(Auth::user()->name)}}&nbsp;</span>
+              <span class="pr-6px">Hi, {{ucfirst(Auth::user()->name)}}!&nbsp;</span>
               <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none"
                 xmlns="http://www.w3.org/2000/svg">
                 <use href="#icon_user" />
@@ -676,7 +703,15 @@
               xmlns="http://www.w3.org/2000/svg">
               <use href="#icon_heart" />
             </svg>
-            <span class="wishlist-amount d-block position-absolute js-wishlist-count">3</span>
+            @php
+           $wishlistCount = \App\Models\Wishlist::where('user_id', Auth::id())->count();
+        @endphp
+
+        @if ($wishlistCount > 0)                
+            <span class="wishlist-amount d-block position-absolute js-wishlist-count">{{ $wishlistCount }}</span>
+        @else
+            <span class="wishlist-amount d-block position-absolute js-wishlist-count">0</span>
+        @endif
           </div>
           <span>Wishlist</span>
         </a>
