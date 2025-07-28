@@ -304,7 +304,15 @@
       <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
         <use href="#icon_cart" />
       </svg>
-      <span class="cart-amount d-block position-absolute js-cart-items-count">3</span>
+       @php
+          $cartCount = \App\Models\Cart::where('user_id', Auth::id())->count();
+      @endphp
+
+      @if ($cartCount > 0)
+      <span class="cart-amount d-block position-absolute js-cart-items-count">{{ $cartCount }}</span>
+      @else
+      <span class="cart-amount d-block position-absolute js-cart-items-count">0</span>
+      @endif
     </a>
   </div>
 </div>
