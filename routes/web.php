@@ -19,6 +19,37 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 
 Auth::routes();
+// Email Verification Routes
+Route::get('/verify', [App\Http\Controllers\Auth\VerificationController::class, 'showVerificationForm'])
+    ->name('verify.form'); // إزالة ->middleware('auth')
+
+Route::post('/verify', [App\Http\Controllers\Auth\VerificationController::class, 'verify'])
+    ->name('verify.code'); // إزالة ->middleware('auth')
+
+Route::post('/verify/resend', [App\Http\Controllers\Auth\VerificationController::class, 'resendCode'])
+    ->name('verify.resend'); // إزالة ->middleware('auth')
+
+
+
+Route::middleware(['guest'])->group(function () {
+    Route::get('/verify', [App\Http\Controllers\Auth\VerificationController::class, 'showVerificationForm'])
+        ->name('verify.form');
+    Route::post('/verify', [App\Http\Controllers\Auth\VerificationController::class, 'verify'])
+        ->name('verify.code');
+    Route::post('/verify/resend', [App\Http\Controllers\Auth\VerificationController::class, 'resendCode'])
+        ->name('verify.resend');
+});
+
+// // Login Verification Routes (لتسجيل الدخول)
+// Route::middleware(['guest'])->group(function () {
+//     Route::get('/login/verify', [App\Http\Controllers\Auth\LoginController::class, 'showLoginVerificationForm'])
+//         ->name('login.verify.form');
+//     Route::post('/login/verify', [App\Http\Controllers\Auth\LoginController::class, 'verifyLoginCode'])
+//         ->name('login.verify.code');
+//     Route::post('/login/verify/resend', [App\Http\Controllers\Auth\LoginController::class, 'resendLoginCode'])
+//         ->name('login.verify.resend');
+// });
+
 
 Route::get('/', [HomeController::class, 'index'])->name('home.index');
 Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
