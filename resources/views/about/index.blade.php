@@ -14,6 +14,15 @@
   box-shadow: 0 8px 20px #4062B1;
   border: 1px solid #f0f0f0;
 }
+@media (max-width: 768px) {
+  .about-section img {
+    margin-bottom: 20px; /* يترك مسافة تحت الصور */
+  }
+
+  .about-section .col-md-6 {
+    margin-bottom: 20px; /* مسافة بين النص والصورة */
+  }
+}
 
 </style>
 <main class="pt-90">
@@ -26,8 +35,8 @@
 
     <hr class="mt-2 text-secondary " />
     <div class="mb-4 pb-4"></div>
-    
-    <section class="container">
+
+    <section class="container about-section">
         <div class="row align-items-center mb-5">
             <div class="col-md-6">
                 <img src="{{ asset('assets/images/about/store-front.png') }}" 
