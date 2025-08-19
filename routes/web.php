@@ -53,6 +53,15 @@ Route::middleware(['guest'])->group(function () {
 
 Route::get('/', [HomeController::class, 'index'])->name('home.index');
 Route::get('/about', [HomeController::class, 'about'])->name('about.index');
+Route::get('/products/search', [HomeController::class, 'search'])->name('products.search');
+
+// البحث المباشر (Live Search) - مهم جداً
+Route::get('/search/live', [HomeController::class, 'liveSearch'])->name('search.live');
+
+// يمكنك أيضاً إضافة بحث AJAX للتحميل الديناميكي
+Route::post('/search/ajax', [HomeController::class, 'ajaxSearch'])->name('search.ajax');
+
+// routes للمنتجات
 Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
 Route::get('/shop/{product_slug}', [ShopController::class, 'product_details'])->name('shop.product.details');
 

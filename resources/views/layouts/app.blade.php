@@ -24,6 +24,103 @@
         integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw=="
         crossorigin="anonymous" referrerpolicy="no-referrer">
     @stack('styles')
+      <style>
+.search-suggestions {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.search-suggestion-item {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.search-suggestion-item:hover {
+    background-color: #f8f9fa;
+}
+
+.search-item-image {
+    flex-shrink: 0;
+}
+
+.search-item-title {
+    font-size: 14px;
+    line-height: 1.4;
+    margin-bottom: 2px;
+}
+
+.search-item-price {
+    font-size: 13px;
+}
+
+.search-result mark {
+    background-color: #fff3cd;
+    padding: 1px 2px;
+    border-radius: 2px;
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.spinner-border {
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    vertical-align: text-bottom;
+    border: .25em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin .75s linear infinite;
+}
+
+.search-popup__results .search-result {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    z-index: 1050;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+/* للموبايل */
+@media (max-width: 768px) {
+    .search-field .search-result {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        z-index: 1050;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .search-suggestion-item {
+        padding: 8px 12px;
+    }
+    
+    .search-item-image {
+        width: 35px;
+        height: 35px;
+    }
+}
+</style>
+
 </head>
 <body class="gradient-bg">
   <svg class="d-none">
@@ -320,23 +417,24 @@
     <nav
       class="header-mobile__navigation navigation d-flex flex-column w-100 position-absolute top-100 bg-body overflow-auto">
       <div class="container">
-        <form action="#" method="GET" class="search-field position-relative mt-4 mb-3">
-          <div class="position-relative">
-            <input class="search-field__input w-100 border rounded-1" type="text" name="search-keyword"
-              placeholder="Search products" />
-            <button class="btn-icon search-popup__submit pb-0 me-2" type="submit">
-              <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none"
-                xmlns="http://www.w3.org/2000/svg">
-                <use href="#icon_search" />
-              </svg>
-            </button>
-            <button class="btn-icon btn-close-lg search-popup__reset pb-0 me-2" type="reset"></button>
-          </div>
+       <form action="{{ route('products.search') }}" method="GET" class="search-field position-relative mt-4 mb-3">
+  <div class="position-relative">
+    <input class="search-field__input w-100 border rounded-1" type="text" name="search-keyword"
+      placeholder="Search products" autocomplete="off" />
+    <button class="btn-icon search-popup__submit pb-0 me-2" type="submit">
+      <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none"
+        xmlns="http://www.w3.org/2000/svg">
+        <use href="#icon_search" />
+      </svg>
+    </button>
+    <button class="btn-icon btn-close-lg search-popup__reset pb-0 me-2" type="reset"></button>
+  </div>
 
-          <div class="position-absolute start-0 top-100 m-0 w-100">
-            <div class="search-result"></div>
-          </div>
-        </form>
+  <div class="position-absolute start-0 top-100 m-0 w-100" style="z-index: 1000;">
+    <div class="search-result bg-white border rounded shadow-sm" style="display: none;"></div>
+  </div>
+</form>
+
       </div>
 
       <div class="container">
@@ -461,38 +559,36 @@
               </a>
             </div>
 
-            <div class="search-popup js-hidden-content">
-              <form action="#" method="GET" class="search-field container">
-                <p class="text-uppercase text-secondary fw-medium mb-4">What are you looking for?</p>
-                <div class="position-relative">
-                  <input class="search-field__input search-popup__input w-100 fw-medium" type="text"
-                    name="search-keyword" placeholder="Search products" />
-                  <button class="btn-icon search-popup__submit" type="submit">
-                    <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none"
-                      xmlns="http://www.w3.org/2000/svg">
-                      <use href="#icon_search" />
-                    </svg>
-                  </button>
-                  <button class="btn-icon btn-close-lg search-popup__reset" type="reset"></button>
-                </div>
+<div class="search-popup js-hidden-content">
+  <form action="{{ route('products.search') }}" method="GET" class="search-field container">
+    <p class="text-uppercase text-secondary fw-medium mb-4">What are you looking for?</p>
+    <div class="position-relative">
+      <input class="search-field__input search-popup__input w-100 fw-medium" type="text"
+        name="search-keyword" placeholder="Search products" autocomplete="off" />
+      <button class="btn-icon search-popup__submit" type="submit">
+        <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none"
+          xmlns="http://www.w3.org/2000/svg">
+          <use href="#icon_search" />
+        </svg>
+      </button>
+      <button class="btn-icon btn-close-lg search-popup__reset" type="reset"></button>
+    </div>
 
-                <div class="search-popup__results">
-                  <div class="sub-menu search-suggestion">
-                    <h6 class="sub-menu__title fs-base">Quicklinks</h6>
-                    <ul class="sub-menu__list list-unstyled">
-                      <li class="sub-menu__item"><a href="shop2.html" class="menu-link menu-link_us-s">New Arrivals</a>
-                      </li>
-                      <li class="sub-menu__item"><a href="#" class="menu-link menu-link_us-s">Dresses</a></li>
-                      <li class="sub-menu__item"><a href="shop3.html" class="menu-link menu-link_us-s">Accessories</a>
-                      </li>
-                      <li class="sub-menu__item"><a href="#" class="menu-link menu-link_us-s">Footwear</a></li>
-                      <li class="sub-menu__item"><a href="#" class="menu-link menu-link_us-s">Sweatshirt</a></li>
-                    </ul>
-                  </div>
-
-                  <div class="search-result row row-cols-5"></div>
-                </div>
-              </form>
+    <div class="search-popup__results">
+      <div class="search-result" style="display: none;"></div>
+      
+      <div class="sub-menu search-suggestion">
+        <h6 class="sub-menu__title fs-base">Quicklinks</h6>
+        <ul class="sub-menu__list list-unstyled">
+          <li class="sub-menu__item"><a href="{{ route('shop.index') }}" class="menu-link menu-link_us-s">New Arrivals</a></li>
+          <li class="sub-menu__item"><a href="{{ route('shop.index') }}" class="menu-link menu-link_us-s">Best Sellers</a></li>
+          <li class="sub-menu__item"><a href="{{ route('shop.index') }}" class="menu-link menu-link_us-s">Accessories</a></li>
+          <li class="sub-menu__item"><a href="{{ route('shop.index') }}" class="menu-link menu-link_us-s">Electronics</a></li>
+          <li class="sub-menu__item"><a href="{{ route('shop.index') }}" class="menu-link menu-link_us-s">All Products</a></li>
+        </ul>
+      </div>
+    </div>
+  </form>
             </div>
           </div>
 
@@ -866,6 +962,228 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 </script>
+
+    <!-- Live Search Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInputs = document.querySelectorAll('.search-field__input, .search-popup__input');
+    const searchResults = document.querySelectorAll('.search-result');
+    let searchTimeout;
+
+    searchInputs.forEach((input, index) => {
+        const resultContainer = searchResults[index] || searchResults[0];
+        
+        input.addEventListener('input', function() {
+            const query = this.value.trim();
+            
+            clearTimeout(searchTimeout);
+            
+            if (query.length < 2) {
+                if (resultContainer) {
+                    resultContainer.innerHTML = '';
+                    resultContainer.style.display = 'none';
+                }
+                return;
+            }
+
+            // إظهار مؤشر التحميل
+            if (resultContainer) {
+                resultContainer.innerHTML = `
+                    <div class="text-center p-3">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="mt-2 text-muted">Searching...</div>
+                    </div>
+                `;
+                resultContainer.style.display = 'block';
+            }
+
+            searchTimeout = setTimeout(() => {
+                performLiveSearch(query, resultContainer);
+            }, 300);
+        });
+
+        // إخفاء النتائج عند النقر خارجها
+        document.addEventListener('click', function(e) {
+            if (!input.contains(e.target) && resultContainer && !resultContainer.contains(e.target)) {
+                resultContainer.style.display = 'none';
+            }
+        });
+
+        // إظهار النتائج عند التركيز
+        input.addEventListener('focus', function() {
+            if (this.value.trim().length >= 2 && resultContainer && resultContainer.innerHTML.trim() !== '') {
+                resultContainer.style.display = 'block';
+            }
+        });
+
+        // مسح البحث
+        const resetButton = input.parentElement.querySelector('.search-popup__reset, .btn-close-lg');
+        if (resetButton) {
+            resetButton.addEventListener('click', function() {
+                if (resultContainer) {
+                    resultContainer.innerHTML = '';
+                    resultContainer.style.display = 'none';
+                }
+                input.value = '';
+            });
+        }
+    });
+
+    async function performLiveSearch(query, resultContainer) {
+        if (!resultContainer) return;
+
+        try {
+            const response = await fetch(`/search/live?q=${encodeURIComponent(query)}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            displaySearchResults(data.products, resultContainer, query, data.total);
+
+        } catch (error) {
+            console.error('Search error:', error);
+            resultContainer.innerHTML = `
+                <div class="p-3 text-center text-danger">
+                    <div class="mb-2">⚠️</div>
+                    <div>Search error occurred. Please try again.</div>
+                </div>
+            `;
+        }
+    }
+
+    function displaySearchResults(products, resultContainer, query, total) {
+        if (!resultContainer) return;
+
+        if (products.length === 0) {
+            resultContainer.innerHTML = `
+                <div class="search-no-results p-4 text-center">
+                    <div class="mb-3">
+                        <svg width="40" height="40" viewBox="0 0 20 20" class="text-secondary">
+                            <use href="#icon_search" />
+                        </svg>
+                    </div>
+                    <p class="mb-2 fw-medium">No results found</p>
+                    <p class="text-muted small mb-0">Try different keywords or check spelling</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '<div class="search-suggestions p-2">';
+        
+        products.forEach((product, index) => {
+            html += `
+                <div class="search-suggestion-item d-flex align-items-center p-2 ${index < products.length - 1 ? 'border-bottom' : ''}" 
+                     style="cursor: pointer; transition: background-color 0.2s;">
+                    <img src="${product.image}" alt="${product.name}" 
+                         class="search-item-image me-3 rounded" 
+                         style="width: 45px; height: 45px; object-fit: cover;"
+                         onerror="this.src='/assets/images/default-product.jpg'">
+                    <div class="flex-grow-1">
+                        <a href="${product.url}" class="search-item-title d-block text-decoration-none text-dark">
+                            <div class="fw-medium" style="font-size: 14px; line-height: 1.3;">
+                                ${highlightSearchTerm(product.name, query)}
+                            </div>
+                            ${product.category ? `<div class="text-muted small">${product.category}</div>` : ''}
+                        </a>
+                        <div class="search-item-price text-primary fw-bold mt-1">$${product.price}</div>
+                    </div>
+                </div>
+            `;
+        });
+
+        // إضافة رابط "عرض كل النتائج" إذا كان هناك المزيد
+        if (total >= 8) {
+            html += `
+                <div class="search-view-all p-2 border-top bg-light">
+                    <a href="/products/search?search-keyword=${encodeURIComponent(query)}" 
+                       class="btn btn-sm btn-primary w-100">
+                        View All ${total}+ Results
+                    </a>
+                </div>
+            `;
+        }
+
+        html += '</div>';
+        resultContainer.innerHTML = html;
+
+        // إضافة hover effect
+        const suggestionItems = resultContainer.querySelectorAll('.search-suggestion-item');
+        suggestionItems.forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#f8f9fa';
+            });
+            item.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = 'transparent';
+            });
+            
+            // النقر لفتح المنتج
+            item.addEventListener('click', function(e) {
+                if (!e.target.closest('a')) {
+                    const link = this.querySelector('a');
+                    if (link) {
+                        window.location.href = link.href;
+                    }
+                }
+            });
+        });
+    }
+
+    function highlightSearchTerm(text, term) {
+        if (!term) return text;
+        
+        const regex = new RegExp(`(${term})`, 'gi');
+        return text.replace(regex, '<mark class="bg-warning bg-opacity-25 px-1 rounded">$1</mark>');
+    }
+
+    // إضافة CSS للتحسينات
+    const style = document.createElement('style');
+    style.textContent = `
+        .search-result {
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .search-suggestion-item:hover {
+            background-color: #f8f9fa !important;
+        }
+        
+        .spinner-border-sm {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .search-result {
+                max-height: 300px;
+                font-size: 14px;
+            }
+            
+            .search-item-image {
+                width: 35px !important;
+                height: 35px !important;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
+
+
   @stack('scripts')
 </body>
 </html>
