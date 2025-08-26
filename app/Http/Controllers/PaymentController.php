@@ -75,6 +75,7 @@ public function showCheckout()
 
 public function placeOrder(Request $request)
 {
+
     $request->validate([
         'payment_method' => 'required|in:cash_on_delivery,bank_transfer,check_payment,stripe',
     ]);
@@ -95,6 +96,8 @@ public function placeOrder(Request $request)
             'address' => $address->address,
             'locality' => $address->locality,
             'landmark' => $address->landmark,
+            'latitude' => $address->latitude, // ✅ ADDED
+            'longitude' => $address->longitude, // ✅ ADDED
         ];
     } else {
         $validated = $request->validate([
@@ -106,6 +109,8 @@ public function placeOrder(Request $request)
             'address' => 'required|string|max:500',
             'locality' => 'required|string|max:255',
             'landmark' => 'nullable|string|max:255',
+            'latitude' => 'required|numeric', // ✅ ADDED
+            'longitude' => 'required|numeric', // ✅ ADDED
         ]);
     }
 
@@ -172,8 +177,10 @@ public function placeOrder(Request $request)
             'address' => $validated['address'],
             'locality' => $validated['locality'],
             'landmark' => $validated['landmark'] ?? null,
+            'latitude' => $validated['latitude'], // ✅ ADDED
+            'longitude' => $validated['longitude'], // ✅ ADDED
             'subtotal' => $subTotal,
-            'discount' => $discount, // ✅ تم إضافة الخصم
+            'discount' => $discount,
             'vat' => $vat,
             'total' => $total,
             'status' => $request->payment_method === 'cash_on_delivery' ? 'pending' : 'unpaid',
@@ -199,6 +206,8 @@ public function placeOrder(Request $request)
                 'address' => $validated['address'],
                 'locality' => $validated['locality'],
                 'landmark' => $validated['landmark'] ?? null,
+                'latitude' => $validated['latitude'], // ✅ ADDED
+                'longitude' => $validated['longitude'], // ✅ ADDED
             ]);
         }
 
@@ -216,7 +225,7 @@ public function placeOrder(Request $request)
         }
 
         Cart::where('user_id', Auth::id())->delete();
-        Session::forget('coupon'); // ✅ إزالة الكوبون بعد الطلب
+        Session::forget('coupon');
 
         DB::commit();
 

@@ -30,6 +30,8 @@ class Order extends Model
         'is_confirmed',
         'confirmation_expires_at',
         'discount',
+        'latitude',
+        'longitude'
     ];
 
     protected $casts = [
