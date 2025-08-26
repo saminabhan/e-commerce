@@ -33,6 +33,21 @@
                     <p><strong>Status:</strong> {{ ucfirst($order->status) }}</p>
                     <p><strong>Total:</strong> ${{ number_format($order->total, 2) }}</p>
                     <p><strong>Order Date:</strong> {{ $order->created_at->format('Y-m-d H:i') }}</p>
+                    <p><strong>Last Updated:</strong> {{ $order->updated_at->format('Y-m-d H:i') }}</p>
+                    <p><strong>Payment Method:</strong> {{ $order->payment_method ?? '—' }}</p>
+                    <p><strong>Transaction ID:</strong> {{ $order->transaction_id ?? '—' }}</p>
+                </div>
+
+                <h4 class="mb-3">Delivery Information</h4>
+                <div class="mb-5">
+                    <p><strong>Name:</strong> {{ $order->name ?? '—' }}</p>
+                    <p><strong>Phone:</strong> {{ $order->phone ?? '—' }}</p>
+                    <p><strong>Address:</strong> {{ $order->address ?? '—' }}</p>
+                    <p><strong>Locality:</strong> {{ $order->locality ?? '—' }}</p>
+                    <p><strong>City:</strong> {{ $order->city ?? '—' }}</p>
+                    <p><strong>State:</strong> {{ $order->state ?? '—' }}</p>
+                    <p><strong>ZIP:</strong> {{ $order->zip ?? '—' }}</p>
+                    <p><strong>Landmark:</strong> {{ $order->landmark ?? '—' }}</p>
                 </div>
 
                 <h4 class="mb-3">Items</h4>
@@ -59,9 +74,9 @@
             $subtotal = $order->items->sum(function($item) {
                 return $item->quantity * $item->price;
             });
-            $discount = $order->discount ?? 0; // مبلغ الخصم
+            $discount = $order->discount ?? 0;
             $totalAfterDiscount = max($subtotal - $discount, 0);
-            $vatRate = 0.15; // 15%
+            $vatRate = 0.15;
             $vatAmount = $totalAfterDiscount * $vatRate;
             $finalTotal = $totalAfterDiscount + $vatAmount;
         @endphp
@@ -103,4 +118,3 @@
     </div>
 </div>
 @endsection
-        

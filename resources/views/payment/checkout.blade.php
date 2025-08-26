@@ -54,7 +54,10 @@
               <select name="selected_address_id" id="selected_address_id" class="form-select">
                 <option value="">-- Choose an Address --</option>
                 @foreach($addresses as $address)
-                  <option value="{{ $address->id }}" {{ old('selected_address_id') == $address->id ? 'selected' : '' }}>
+                  <option value="{{ $address->id }}" 
+                          data-lat="{{ $address->latitude ?? '' }}" 
+                          data-lng="{{ $address->longitude ?? '' }}"
+                          {{ old('selected_address_id') == $address->id ? 'selected' : '' }}>
                     {{ $address->name }}, {{ $address->address }}, {{ $address->city }}, {{ $address->state }}
                   </option>
                 @endforeach
@@ -67,8 +70,36 @@
           </div>
           @endif
 
-          {{-- فورم إدخال عنوان جديد (مخفي إفتراضياً إذا يوجد عناوين) --}}
+          {{-- فورم إدخال عنوان جديد مع الخريطة --}}
           <div id="new-address-form" style="{{ ($addresses->count() > 0 && old('selected_address_id') != 'new') ? 'display:none;' : '' }}">
+            
+            {{-- خريطة تحديد الموقع --}}
+            <div class="row mt-4">
+              <div class="col-12">
+                <h5 class="mb-3">Select Your Location on Map</h5>
+                <div class="map-container mb-4">
+                  <div id="map" style="height: 400px; border-radius: 8px; border: 2px solid #e0e0e0;"></div>
+                  <div class="map-controls mt-3">
+                    <button type="button" id="detect-location" class="btn btn-outline-primary me-2">
+                      <i class="fas fa-crosshairs"></i> Detect My Location
+                    </button>
+                    <button type="button" id="search-address" class="btn btn-outline-secondary">
+                      <i class="fas fa-search"></i> Search Address
+                    </button>
+                  </div>
+                  <div id="address-search" class="mt-3" style="display: none;">
+                    <input type="text" id="search-input" class="form-control" placeholder="Enter address to search...">
+                  </div>
+                  <div id="location-status" class="mt-2"></div>
+                </div>
+              </div>
+            </div>
+
+            {{-- الحقول المخفية للإحداثيات --}}
+            <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude') }}">
+            <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude') }}">
+            
+            {{-- حقول العنوان --}}
             <div class="row mt-5">
               <div class="col-md-6">
                 <div class="form-floating my-3">
@@ -185,33 +216,33 @@
               </table>
 
               <table class="checkout-totals">
-    <tbody>
-        <tr>
-            <th>SUBTOTAL</th>
-            <td align="right">${{ number_format($subTotal, 2) }}</td>
-        </tr>
-        <tr>
-            <th>SHIPPING</th>
-            <td align="right">Free</td>
-        </tr>
-        <tr>
-            <th>VAT (15%)</th>
-            <td align="right">${{ number_format($vat, 2) }}</td>
-        </tr>
+                <tbody>
+                    <tr>
+                        <th>SUBTOTAL</th>
+                        <td align="right">${{ number_format($subTotal, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <th>SHIPPING</th>
+                        <td align="right">Free</td>
+                    </tr>
+                    <tr>
+                        <th>VAT (15%)</th>
+                        <td align="right">${{ number_format($vat, 2) }}</td>
+                    </tr>
 
-        @if(session()->has('coupon') && $discount > 0)
-        <tr>
-<th>DISCOUNT ({{ strtoupper($coupon?->code ?? '') }})</th>
-            <td align="right">- ${{ number_format($discount, 2) }}</td>
-        </tr>
-        @endif
+                    @if(session()->has('coupon') && $discount > 0)
+                    <tr>
+                        <th>DISCOUNT ({{ strtoupper($coupon?->code ?? '') }})</th>
+                        <td align="right">- ${{ number_format($discount, 2) }}</td>
+                    </tr>
+                    @endif
 
-        <tr class="total-row">
-            <th><strong>TOTAL</strong></th>
-            <td align="right"><strong>${{ number_format($total, 2) }}</strong></td>
-        </tr>
-    </tbody>
-</table>
+                    <tr class="total-row">
+                        <th><strong>TOTAL</strong></th>
+                        <td align="right"><strong>${{ number_format($total, 2) }}</strong></td>
+                    </tr>
+                </tbody>
+              </table>
 
             </div>
 
@@ -278,9 +309,300 @@
   </section>
 </main>
 
+{{-- Add Font Awesome for icons --}}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+{{-- Add custom CSS for map --}}
+<style>
+.map-container {
+    position: relative;
+}
+
+#location-status {
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.status-success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.status-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+}
+
+.status-error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.delivery-zone-info {
+    background: #e8f4fd;
+    border: 1px solid #bee5eb;
+    border-radius: 4px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.map-legend {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    font-size: 12px;
+    z-index: 1000;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    border-radius: 2px;
+}
+</style>
+
 @push('scripts')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
 <script>
+let map;
+let userMarker;
+let storeMarker;
+let geocoder;
+
+// إعدادات المتجر (للعرض فقط)
+const STORE_LOCATION = {
+    lat: 32.2211, // نابلس
+    lng: 35.2544
+};
+
+function initMap() {
+    // إنشاء الخريطة باستخدام Leaflet
+    map = L.map('map').setView([STORE_LOCATION.lat, STORE_LOCATION.lng], 12);
+
+    // إضافة طبقة OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    // إضافة علامة المتجر
+    storeMarker = L.marker([STORE_LOCATION.lat, STORE_LOCATION.lng], {
+        title: 'Our Store',
+        icon: L.icon({
+            iconUrl: 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="red" width="30" height="40"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'),
+            iconSize: [30, 40],
+            iconAnchor: [15, 40]
+        })
+    }).addTo(map);
+    
+    // إضافة معلومات للمتجر
+    storeMarker.bindPopup(`
+        <div style="padding: 10px;">
+            <h6 style="margin: 0 0 5px 0; color: #333;">Our Store</h6>
+            <p style="margin: 0; font-size: 12px; color: #666;">Delivery to Egypt & Palestine</p>
+        </div>
+    `);
+
+    // إضافة أداة البحث عن العناوين (Nominatim)
+    geocoder = L.Control.geocoder({
+        defaultMarkGeocode: false,
+        placeholder: 'Search for your address...',
+        geocoder: L.Control.Geocoder.nominatim(),
+    }).on('markgeocode', function(e) {
+        const lat = e.geocode.center.lat;
+        const lng = e.geocode.center.lng;
+        
+        // تحديث موقع المستخدم
+        updateUserLocation(lat, lng);
+        
+        // تحديث معلومات العنوان
+        updateAddressFields(e.geocode.properties);
+        
+        map.setView([lat, lng], 15);
+    }).addTo(map);
+
+    // النقر على الخريطة لتحديد الموقع
+    map.on('click', function(event) {
+        const lat = event.latlng.lat;
+        const lng = event.latlng.lng;
+        
+        updateUserLocation(lat, lng);
+        
+        // الحصول على معلومات العنوان من الإحداثيات
+        reverseGeocode(lat, lng);
+    });
+
+    // تحميل موقع سابق إذا كان موجود
+    const savedLat = document.getElementById('latitude').value;
+    const savedLng = document.getElementById('longitude').value;
+    
+    if (savedLat && savedLng) {
+        updateUserLocation(parseFloat(savedLat), parseFloat(savedLng));
+    }
+}
+
+function updateUserLocation(lat, lng) {
+    // إزالة العلامة السابقة
+    if (userMarker) {
+        map.removeLayer(userMarker);
+    }
+
+    // إضافة علامة جديدة
+    userMarker = L.marker([lat, lng], {
+        title: 'Your Location',
+        draggable: true,
+        icon: L.icon({
+            iconUrl: 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="blue" width="25" height="35"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'),
+            iconSize: [25, 35],
+            iconAnchor: [12.5, 35]
+        })
+    }).addTo(map);
+
+    // تحديث الحقول المخفية
+    document.getElementById('latitude').value = lat;
+    document.getElementById('longitude').value = lng;
+
+    // إضافة إمكانية السحب
+    userMarker.on('dragend', function(event) {
+        const newLat = event.target.getLatLng().lat;
+        const newLng = event.target.getLatLng().lng;
+        
+        document.getElementById('latitude').value = newLat;
+        document.getElementById('longitude').value = newLng;
+        
+        reverseGeocode(newLat, newLng);
+    });
+}
+
+function checkDeliveryZone(address) {
+    const statusDiv = document.getElementById('location-status');
+    
+    // قائمة الدول المسموح بها
+    const allowedCountries = [
+        'Egypt', 'مصر',
+        'Palestine', 'فلسطين', 'State of Palestine'
+    ];
+
+    // قائمة المدن المسموح بها في حال فشل التحقق من الدولة
+    const allowedCities = [
+        'Gaza', 'غزة',
+        'Nablus', 'نابلس',
+        'Hebron', 'الخليل',
+        'Ramallah', 'رام الله',
+        'Jerusalem', 'القدس'
+    ];
+
+    let isInsideZone = false;
+
+    // التحقق الأول: اسم الدولة
+    if (address.country && allowedCountries.map(name => name.toLowerCase()).includes(address.country.toLowerCase())) {
+        isInsideZone = true;
+    }
+    
+    // التحقق الثاني (كخيار احتياطي): اسم المدينة أو المنطقة
+    if (!isInsideZone) {
+        const cityOrLocality = address.city || address.town || address.village || address.suburb;
+        if (cityOrLocality && allowedCities.map(name => name.toLowerCase()).includes(cityOrLocality.toLowerCase())) {
+            isInsideZone = true;
+        }
+    }
+
+    if (isInsideZone) {
+        statusDiv.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <strong>Great!</strong> Your location is within our delivery zone.
+        `;
+        statusDiv.className = 'status-success';
+        document.getElementById('place-order-btn').disabled = false;
+    } else {
+        statusDiv.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Sorry!</strong> Your location is outside our delivery zone. We deliver to Egypt and Palestine only.
+        `;
+        statusDiv.className = 'status-error';
+        document.getElementById('place-order-btn').disabled = true;
+    }
+}
+
+
+function reverseGeocode(lat, lng) {
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.address) {
+                updateAddressFields(data.address);
+                checkDeliveryZone(data.address);
+            }
+        })
+        .catch(error => console.error('Error during reverse geocoding:', error));
+}
+
+function updateAddressFields(address) {
+    document.querySelector('input[name="address"]').value = address.road || '';
+    document.querySelector('input[name="locality"]').value = address.suburb || address.village || '';
+    document.querySelector('input[name="city"]').value = address.city || address.town || address.hamlet || '';
+    document.querySelector('input[name="state"]').value = address.state || '';
+    document.querySelector('input[name="zip"]').value = address.postcode || '';
+}
+
+// تشغيل الأحداث
 document.addEventListener('DOMContentLoaded', function() {
+    // زر تحديد الموقع الحالي
+    document.getElementById('detect-location').addEventListener('click', function() {
+        if (navigator.geolocation) {
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Detecting...';
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    updateUserLocation(lat, lng);
+                    reverseGeocode(lat, lng);
+                    
+                    map.setView([lat, lng], 15);
+                    
+                    document.getElementById('detect-location').innerHTML = '<i class="fas fa-crosshairs"></i> Detect My Location';
+                },
+                function(error) {
+                    alert('Error detecting location: ' + error.message);
+                    document.getElementById('detect-location').innerHTML = '<i class="fas fa-crosshairs"></i> Detect My Location';
+                }
+            );
+        } else {
+            alert('Geolocation is not supported by this browser.');
+        }
+    });
+
+    // إخفاء زر البحث لأنه أصبح مدمجًا في الخريطة
+    const searchBtn = document.getElementById('search-address');
+    if (searchBtn) {
+        searchBtn.style.display = 'none';
+    }
+    const searchDiv = document.getElementById('address-search');
+    if (searchDiv) {
+        searchDiv.style.display = 'none';
+    }
+
+
     const form = document.getElementById('checkout-form');
     const submitBtn = document.getElementById('place-order-btn');
     const btnText = submitBtn.querySelector('.btn-text');
@@ -292,13 +614,25 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-
-        // التحقق من طريقة الدفع
         const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
         if (!paymentMethod) {
             e.preventDefault();
             alert('Please select a payment method.');
             return;
+        }
+
+        const newAddressForm = document.getElementById('new-address-form');
+        const addressSelect = document.getElementById('selected_address_id');
+        
+        if (newAddressForm.style.display !== 'none' && (!addressSelect || addressSelect.value === 'new' || !addressSelect.value)) {
+            const lat = document.getElementById('latitude').value;
+            const lng = document.getElementById('longitude').value;
+            
+            if (!lat || !lng) {
+                e.preventDefault();
+                alert('Please select your location on the map.');
+                return;
+            }
         }
 
         submitBtn.disabled = true;
@@ -330,7 +664,6 @@ document.addEventListener('DOMContentLoaded', function() {
         checkedMethod.closest('.payment-option').classList.add('active');
     }
 
-    // Show/hide new address form based on dropdown
     const addressSelect = document.getElementById('selected_address_id');
     if (addressSelect) {
         addressSelect.addEventListener('change', function() {
@@ -339,48 +672,31 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (this.value === 'new' || !this.value) {
                 newAddressForm.style.display = 'block';
-                // إضافة الـ required attribute للحقول
                 addressFormInputs.forEach(input => {
                     input.setAttribute('required', 'required');
                 });
             } else {
                 newAddressForm.style.display = 'none';
-                // إزالة الـ required attribute من الحقول
                 addressFormInputs.forEach(input => {
                     input.removeAttribute('required');
                 });
+                
+                const selectedOption = this.options[this.selectedIndex];
+                const lat = selectedOption.dataset.lat;
+                const lng = selectedOption.dataset.lng;
+                
+                if (lat && lng) {
+                    updateUserLocation(parseFloat(lat), parseFloat(lng));
+                    map.setView([parseFloat(lat), parseFloat(lng)], 15);
+                }
             }
         });
 
-        // تشغيل الحدث عند تحميل الصفحة
         addressSelect.dispatchEvent(new Event('change'));
     }
 });
-</script>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const addressSelect = document.getElementById('selected_address_id');
-    if (!addressSelect) return;
-
-    const newAddressForm = document.getElementById('new-address-form');
-    const addressFormInputs = newAddressForm.querySelectorAll('input[required]');
-
-    function toggleNewAddressForm() {
-        if (addressSelect.value === 'new') {
-            newAddressForm.style.display = 'block';
-            addressFormInputs.forEach(input => input.setAttribute('required', 'required'));
-        } else {
-            newAddressForm.style.display = 'none';
-            addressFormInputs.forEach(input => input.removeAttribute('required'));
-        }
-    }
-
-    addressSelect.addEventListener('change', toggleNewAddressForm);
-    toggleNewAddressForm();
-});
-
+window.addEventListener('load', initMap);
 </script>
 @endpush
-
 @endsection
