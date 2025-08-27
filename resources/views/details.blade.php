@@ -133,19 +133,30 @@
     <div class="qty-control__increase" role="button" tabindex="0" aria-label="Increase quantity">+</div>
   </div>
 
-  <button
-    type="button"
-    class="btn btn-primary js-cart-toggle"
-    data-product-id="{{ $product->id }}"
-    data-name="{{ $product->name }}"
-    data-price="{{ $product->sale_price ?: $product->regular_price }}"
-    data-action="add"
-    data-row-id=""
-    data-add-route="{{ route('cart.add') }}"
-    title="Add to Cart"
-  >
-    Add to Cart
-  </button>
+ @if (auth()->check())
+    <button
+        type="button"
+        class="btn js-cart-toggle {{ $cartItem ? 'btn-danger filled' : 'btn-primary' }}"
+        data-product-id="{{ $product->id }}"
+        data-name="{{ $product->name }}"
+        data-price="{{ $product->sale_price ?: $product->regular_price }}"
+        data-action="{{ $cartItem ? 'remove' : 'add' }}"
+        data-row-id="{{ $cartItem ? $cartItem->rowId : '' }}"
+        data-add-route="{{ route('cart.add') }}"
+        title="{{ $cartItem ? 'Remove from Cart' : 'Add to Cart' }}"
+    >
+        {{ $cartItem ? 'Remove from Cart' : 'Add to Cart' }}
+    </button>
+ @else
+    <a href="{{ route('login') }}"
+       class="btn btn-primary"
+       title="Please login to add to cart"
+    >
+        Add To Cart
+    </a>
+ @endif
+
+ 
 </div>
 @endif
 

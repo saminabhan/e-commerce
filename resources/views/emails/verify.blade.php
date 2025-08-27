@@ -131,7 +131,7 @@
         </div>
 
         <div class="warning">
-            <strong>⚠️ Important:</strong> This code will expire in 1 minute. If it expires, you can request a new one from the verification page.
+            <strong>⚠️ Important:</strong> This code will expire in 5 minute. If it expires, you can request a new one from the verification page.
         </div>
 
         <p>Enter this code on the verification page to activate your account.</p>
