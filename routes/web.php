@@ -29,6 +29,10 @@ Route::post('/verify', [App\Http\Controllers\Auth\VerificationController::class,
 Route::post('/verify/resend', [App\Http\Controllers\Auth\VerificationController::class, 'resendCode'])
     ->name('verify.resend'); // إزالة ->middleware('auth')
 
+Route::get('password/reset', [App\Http\Controllers\Auth\LoginController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('password/email', [App\Http\Controllers\Auth\LoginController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('password/reset/{token}', [App\Http\Controllers\Auth\LoginController::class, 'showResetForm'])->name('password.reset');
+Route::post('password/reset', [App\Http\Controllers\Auth\LoginController::class, 'reset'])->name('password.update');
 
 
 Route::middleware(['guest'])->group(function () {
@@ -102,6 +106,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/account-orders/{order}', [UserController::class, 'orderDetails'])->name('user.order.details');
     Route::resource('addresses', AddressController::class);
 
+    // التحقق من توفر الإيميل
+    Route::post('/user/check-email', [UserController::class, 'checkEmailAvailability'])->name('user.check.email');
+    
+    // الروتس الجديدة للتحقق من الإيميل
+    Route::post('/user/confirm-email-change', [UserController::class, 'confirmEmailChange'])->name('user.confirm.email.change');
+    Route::get('/user/verify-email-change', [UserController::class, 'showEmailVerificationForm'])->name('user.verify.email.form');
+    Route::post('/user/verify-email-change', [UserController::class, 'verifyEmailChange'])->name('user.verify.email.change');
+    Route::get('/user/resend-email-verification', [UserController::class, 'resendEmailVerification'])->name('user.resend.email.verification');
 });
 
 Route::middleware(['auth', AuthAdmin::class])->group(function(){
