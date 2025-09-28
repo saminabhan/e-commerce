@@ -9,10 +9,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class LoginController extends Controller
 {
@@ -84,63 +84,123 @@ class LoginController extends Controller
     }
 
     /**
+     * Rate limiting لطلبات إعادة التعيين
+     */
+    protected function checkRateLimit(Request $request)
+    {
+        $key = 'password-reset-' . $request->ip();
+        $maxAttempts = 5; // 5 محاولات كحد أقصى
+        $decayMinutes = 60; // خلال 60 دقيقة
+        
+        if (cache()->has($key) && cache()->get($key) >= $maxAttempts) {
+            return true; // تم تجاوز الحد الأقصى
+        }
+        
+        return false;
+    }
+
+    /**
+     * تسجيل محاولة إعادة التعيين
+     */
+    protected function logResetAttempt(Request $request)
+    {
+        $key = 'password-reset-' . $request->ip();
+        $attempts = cache()->get($key, 0) + 1;
+        cache()->put($key, $attempts, 60); // حفظ لمدة 60 دقيقة
+    }
+
+    /**
      * Send a reset link to the given user.
      */
-    public function sendResetLinkEmail(Request $request)
-    {
-        $request->validate(['email' => 'required|email']);
+   public function sendResetLinkEmail(Request $request)
+{
+    $request->validate(['email' => 'required|email']);
 
-        // التحقق من وجود المستخدم
-        $user = User::where('email', $request->email)->first();
-        
-        if (!$user) {
-            return back()->with('error', 'We could not find a user with that email address.');
-        }
-
-        try {
-            // إنشاء token للإعادة تعيين
-            $token = Str::random(60);
-            
-            // حفظ التوكن في قاعدة البيانات (تحتاج إنشاء جدول password_resets)
-            DB::table('password_reset_tokens')->updateOrInsert(
-                ['email' => $request->email],
-                [
-                    'email' => $request->email,
-                    'token' => Hash::make($token),
-                    'created_at' => now()
-                ]
-            );
-
-            // إرسال الإيميل
-            $resetUrl = url('password/reset/' . $token . '?email=' . urlencode($request->email));
-            
-            Mail::raw(
-                "Hello,\n\n" .
-                "You are receiving this email because we received a password reset request for your account.\n\n" .
-                "Click the link below to reset your password:\n" .
-                $resetUrl . "\n\n" .
-                "This password reset link will expire in 60 minutes.\n\n" .
-                "If you did not request a password reset, no further action is required.\n\n" .
-                "Regards,\nSami Store Team",
-                function ($message) use ($request) {
-                    $message->to($request->email)
-                           ->subject('Reset Password Notification')
-                           ->from(config('mail.from.address', 'noreply@samistore.com'), 
-                                  config('mail.from.name', 'Sami Store'));
-                }
-            );
-
-            return back()->with('status', 'We have emailed your password reset link!');
-
-        } catch (\Exception $e) {
-            Log::error('Password reset email failed', [
-                'email' => $request->email,
-                'error' => $e->getMessage()
-            ]);
-            
-            return back()->with('error', 'Failed to send password reset email. Please try again.');
-        }
+    // فحص Rate Limiting (محاولات كثيرة)
+    if ($this->checkRateLimit($request)) {
+        return back()->with('error', 'Too many password reset attempts. Please try again later.');
     }
+
+    // تسجيل المحاولة
+    $this->logResetAttempt($request);
+
+    // التحقق من وجود المستخدم
+    $user = User::where('email', $request->email)->first();
+    
+    if (!$user) {
+        Log::warning('Password reset attempted for non-existent email', [
+            'email' => $request->email,
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'timestamp' => now()
+        ]);
+
+        return back()->with('error', 'We could not find a user with that email address.');
+    }
+
+    try {
+        // فحص إذا فيه token حديث (لمنع التكرار)
+        $existingToken = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if ($existingToken && $existingToken->created_at > now()->subMinutes(2)) {
+            $secondsLeft = now()->diffInSeconds(
+                \Carbon\Carbon::parse($existingToken->created_at)->addMinutes(2),
+                false
+            );
+
+            return back()->with([
+                'error' => 'A password reset email was already sent recently. Please check your email or wait a few minutes before trying again.',
+                'retry_after' => $secondsLeft > 0 ? $secondsLeft : 0
+            ])->withInput();
+        }
+
+        // إنشاء token جديد
+        $token = Str::random(60);
+        
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $request->email],
+            [
+                'email' => $request->email,
+                'token' => Hash::make($token),
+                'created_at' => now()
+            ]
+        );
+
+        // إرسال الإيميل
+        $resetUrl = url('password/reset/' . $token . '?email=' . urlencode($request->email));
+        
+        Mail::raw(
+            "Hello,\n\n" .
+            "You are receiving this email because we received a password reset request for your account.\n\n" .
+            "Click the link below to reset your password:\n" .
+            $resetUrl . "\n\n" .
+            "This password reset link will expire in 60 minutes.\n\n" .
+            "If you did not request a password reset, no further action is required.\n\n" .
+            "Regards,\nSami Store Team",
+            function ($message) use ($request) {
+                $message->to($request->email)
+                       ->subject('Reset Password Notification')
+                       ->from(config('mail.from.address', 'noreply@samistore.com'), 
+                              config('mail.from.name', 'Sami Store'));
+            }
+        );
+
+        return back()->with('status', 'We have emailed your password reset link to ' . $request->email);
+
+    } catch (\Exception $e) {
+        Log::error('Password reset email failed', [
+            'email' => $request->email,
+            'error' => $e->getMessage(),
+            'ip' => $request->ip()
+        ]);
+        
+        return back()->with('error', 'Failed to send password reset email. Please try again.');
+    }
+}
+
 
     /**
      * Display the password reset form.
@@ -164,18 +224,35 @@ class LoginController extends Controller
             'password' => 'required|min:8|confirmed',
         ]);
 
+        // فحص Rate Limiting لإعادة التعيين أيضاً
+        $resetKey = 'password-reset-submit-' . $request->ip();
+        if (cache()->has($resetKey) && cache()->get($resetKey) >= 3) {
+            return back()->withErrors(['email' => 'Too many reset attempts. Please try again later.']);
+        }
+
         // التحقق من التوكن
         $passwordReset = DB::table('password_reset_tokens')
             ->where('email', $request->email)
             ->first();
 
         if (!$passwordReset || !Hash::check($request->token, $passwordReset->token)) {
+            // تسجيل محاولة إعادة تعيين بtoken خاطئ
+            cache()->put($resetKey, cache()->get($resetKey, 0) + 1, 60);
+            
+            Log::warning('Invalid password reset token used', [
+                'email' => $request->email,
+                'token_provided' => substr($request->token, 0, 10) . '...',
+                'ip' => $request->ip()
+            ]);
+            
             return back()->withErrors(['email' => 'This password reset token is invalid.']);
         }
 
         // التحقق من انتهاء صلاحية التوكن (60 دقيقة)
         if (now()->diffInMinutes($passwordReset->created_at) > 60) {
-            return back()->withErrors(['email' => 'This password reset token has expired.']);
+            // حذف التوكن المنتهي الصلاحية
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            return back()->withErrors(['email' => 'This password reset token has expired. Please request a new one.']);
         }
 
         // العثور على المستخدم وتحديث كلمة المرور
@@ -193,6 +270,69 @@ class LoginController extends Controller
         // حذف التوكن المستخدم
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
-        return redirect()->route('login')->with('status', 'Your password has been reset! Please login with your new password.');
+        // تسجيل إعادة التعيين الناجحة
+        Log::info('Password reset successful', [
+            'user_id' => $user->id,
+            'email' => $request->email,
+            'ip' => $request->ip()
+        ]);
+
+        return redirect()->route('login')->with('status', 'Your password has been reset successfully! Please login with your new password.');
+    }
+
+    /**
+     * طريقة للاختبار (احذفها بعد حل المشكلة)
+     */
+    public function testEmailConfiguration()
+    {
+        try {
+            // اختبار إعدادات الـ Mail
+            $config = [
+                'mail_driver' => config('mail.default'),
+                'mail_host' => config('mail.mailers.smtp.host'),
+                'mail_port' => config('mail.mailers.smtp.port'),
+                'mail_username' => config('mail.mailers.smtp.username'),
+                'mail_encryption' => config('mail.mailers.smtp.encryption'),
+                'mail_from_address' => config('mail.from.address'),
+            ];
+
+            // اختبار إرسال إيميل بسيط
+            Mail::raw('This is a test email from Sami Store', function ($message) {
+                $message->to(Auth::user()->email)
+                       ->subject('Test Email Configuration')
+                       ->from(config('mail.from.address', 'noreply@samistore.com'), 
+                              config('mail.from.name', 'Sami Store'));
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Test email sent successfully to ' . Auth::user()->email,
+                'config' => $config
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'config' => config('mail')
+            ]);
+        }
+    }
+
+    /**
+     * تنظيف التوكنز المنتهية الصلاحية
+     */
+    public function cleanupExpiredTokens()
+    {
+        $deleted = DB::table('password_reset_tokens')
+            ->where('created_at', '<', now()->subHours(1))
+            ->delete();
+
+        Log::info("Cleaned up {$deleted} expired password reset tokens");
+        
+        return response()->json([
+            'success' => true,
+            'deleted_tokens' => $deleted
+        ]);
     }
 }
