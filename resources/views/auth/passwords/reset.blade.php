@@ -20,23 +20,19 @@
                         @csrf
                         <input type="hidden" name="token" value="{{ $token }}">
 
-                        {{-- Email --}}
+                       {{-- Email (display only) --}}
                         <div class="form-floating mb-3">
-                            <input id="email" 
-                                   type="email" 
-                                   class="form-control form-control_gray @error('email') is-invalid @enderror" 
-                                   name="email" 
-                                   value="{{ $email ?? old('email') }}" 
-                                   required 
-                                   autocomplete="email" 
-                                   autofocus>
-                            <label for="email">Email Address *</label>
-                            @error('email')
-                                <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
+                        {{-- للعرض فقط --}}
+                        <input type="email" 
+                            class="form-control form-control_gray" 
+                            value="{{ $email ?? '' }}" 
+                            disabled>
+
+                        {{-- للإرسال مع الـ form --}}
+                        <input type="hidden" name="email" value="{{ $email ?? '' }}">
+                            <label>Email Address *</label>
                         </div>
+
 
                         {{-- Password --}}
                         <div class="form-floating mb-3">

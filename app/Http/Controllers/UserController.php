@@ -133,12 +133,16 @@ class UserController extends Controller
                 }
 
                 // استخدام Mail::raw كبديل أولاً للاختبار
-                Mail::raw("Your verification code is: {$verificationCode}\n\nThis code expires in 5 minutes.\n\nIf you didn't request this change, please ignore this email.\n\nSami Store Team", function ($message) use ($pendingUpdate) {
+                Mail::send('emails.email_change_verification', [
+                    'verificationCode' => $verificationCode,
+                    'user' => Auth::user()
+                ], function ($message) use ($pendingUpdate) {
                     $message->to($pendingUpdate['email'])
-                           ->subject('Email Verification - Account Update')
-                           ->from(config('mail.from.address', 'noreply@samistore.com'), 
-                                  config('mail.from.name', 'Sami Store'));
+                        ->subject('Email Verification - Account Update')
+                        ->from(config('mail.from.address', 'noreply@samistore.com'), 
+                                config('mail.from.name', 'Sami Store'));
                 });
+
 
                 return redirect()->route('user.verify.email.form')
                     ->with('success', 'Verification code sent to your new email address: ' . $pendingUpdate['email']);
@@ -214,42 +218,45 @@ class UserController extends Controller
             ->with('success', 'Account details updated successfully! Your new email address has been verified.');
     }
 
-    public function resendEmailVerification()
-    {
-        $emailVerification = Session::get('email_verification');
-        
-        if (!$emailVerification) {
-            return redirect()->route('user.details')
-                ->with('error', 'No pending email verification found.');
-        }
-
-        $newCode = rand(100000, 999999);
-        $emailVerification['code'] = $newCode;
-        $emailVerification['expires_at'] = now()->addMinutes(5);
-        Session::put('email_verification', $emailVerification);
-
-        $pendingUpdate = $emailVerification['pending_update'];
-
-        try {
-            Mail::raw("Your new verification code is: {$newCode}\n\nThis code expires in 5 minutes.\n\nIf you didn't request this change, please ignore this email.\n\nSami Store Team", function ($message) use ($pendingUpdate) {
-                $message->to($pendingUpdate['email'])
-                       ->subject('Email Verification - Account Update (Resend)')
-                       ->from(config('mail.from.address', 'noreply@samistore.com'), 
-                              config('mail.from.name', 'Sami Store'));
-            });
-
-            return back()->with('success', 'New verification code sent to your email: ' . $pendingUpdate['email']);
-            
-        } catch (\Exception $e) {
-            Log::error('Failed to resend email verification', [
-                'error' => $e->getMessage(),
-                'email' => $pendingUpdate['email'],
-                'user_id' => Auth::id()
-            ]);
-
-            return back()->with('error', 'Failed to send verification email. Error: ' . $e->getMessage());
-        }
+public function resendEmailVerification()
+{
+    $emailVerification = Session::get('email_verification');
+    
+    if (!$emailVerification) {
+        return redirect()->route('user.details')
+            ->with('error', 'No pending email verification found.');
     }
+
+    $newCode = rand(100000, 999999);
+    $emailVerification['code'] = $newCode;
+    $emailVerification['expires_at'] = now()->addMinutes(5);
+    Session::put('email_verification', $emailVerification);
+
+    $pendingUpdate = $emailVerification['pending_update'];
+
+    try {
+        Mail::send('emails.email_change_verification', [
+            'verificationCode' => $newCode,
+            'user' => Auth::user()
+        ], function ($message) use ($pendingUpdate) {
+            $message->to($pendingUpdate['email'])
+                   ->subject('Email Verification - Account Update (Resend)')
+                   ->from(config('mail.from.address', 'noreply@samistore.com'), 
+                          config('mail.from.name', 'Sami Store'));
+        });
+
+        return back()->with('success', 'New verification code sent to your email: ' . $pendingUpdate['email']);
+        
+    } catch (\Exception $e) {
+        Log::error('Failed to resend email verification', [
+            'error' => $e->getMessage(),
+            'email' => $pendingUpdate['email'],
+            'user_id' => Auth::id()
+        ]);
+
+        return back()->with('error', 'Failed to send verification email. Error: ' . $e->getMessage());
+    }
+}
 
     public function checkEmailAvailability(Request $request)
     {
