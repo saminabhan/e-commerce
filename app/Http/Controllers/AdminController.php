@@ -675,4 +675,31 @@ public function variant_delete($id)
 
         return redirect()->route('admin.settings')->with('status', 'Password updated successfully!');
     }
+    public function deleteVariantImage(Request $request, $id)
+{
+    try {
+        $variant = ProductVariant::findOrFail($id);
+        $imageToDelete = $request->image;
+        
+        // حذف الصورة من المجلد
+        $imagePath = public_path('uploads/products/' . $imageToDelete);
+        if (file_exists($imagePath)) {
+            unlink($imagePath);
+        }
+        
+        // تحديث قاعدة البيانات
+        $images = explode(',', $variant->images);
+        $images = array_filter($images, function($img) use ($imageToDelete) {
+            return trim($img) !== $imageToDelete;
+        });
+        
+        $variant->images = implode(',', $images);
+        $variant->save();
+        
+        return response()->json(['success' => true]);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+}
+
 }

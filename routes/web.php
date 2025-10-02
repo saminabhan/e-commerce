@@ -160,6 +160,7 @@ Route::post('/attributes/store', [AdminController::class, 'attribute_store'])->n
 Route::post('/attributes/value/store', [AdminController::class, 'attribute_value_store'])->name('admin.attributes.value.store');
 Route::delete('/attributes/{id}', [AdminController::class, 'attribute_delete'])->name('admin.attributes.delete');
 Route::delete('/attributes/value/{id}', [AdminController::class, 'attribute_value_delete'])->name('admin.attributes.value.delete');
+Route::post('/admin/variant/delete-image/{id}', [AdminController::class, 'deleteVariantImage'])->name('admin.variant.delete.image');
 
     Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
         Route::resource('slider', SliderController::class)->names('slider');

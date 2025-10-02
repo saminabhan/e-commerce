@@ -199,9 +199,12 @@
                                 @if($variant->images)
                                 <div class="variant-preview-grid">
                                     @foreach(explode(',', $variant->images) as $imgIndex => $img)
-                                    <div class="variant-preview-item">
+                                    <div class="variant-preview-item" data-image-name="{{ trim($img) }}">
                                         <img src="{{ asset('uploads/products') }}/{{ trim($img) }}" alt="Image {{ $imgIndex + 1 }}">
                                         <div class="preview-badge">{{ $imgIndex + 1 }}</div>
+                                        <button type="button" class="btn-delete-image" onclick="deleteVariantImage({{ $variant->id }}, '{{ trim($img) }}', this)">
+                                            <i class="icon-trash-2"></i>
+                                        </button>
                                         <div class="preview-overlay">
                                             <i class="icon-check"></i>
                                         </div>
@@ -442,6 +445,48 @@ async function deleteVariant(variantId, button) {
     } catch (err) {
         console.error(err);
         alert('Network error');
+    }
+}
+
+async function deleteVariantImage(variantId, imageName, button) {
+    if (!confirm('Are you sure you want to delete this image? This action cannot be undone.')) return;
+    
+    try {
+        const response = await fetch(`/admin/variant/delete-image/${variantId}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ image: imageName })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            const previewItem = button.closest('.variant-preview-item');
+            previewItem.style.opacity = '0';
+            previewItem.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                previewItem.remove();
+                const variantCard = button.closest('.variant-card');
+                const previewGrid = variantCard.querySelector('.variant-preview-grid');
+                const items = previewGrid.querySelectorAll('.variant-preview-item');
+                items.forEach((item, index) => {
+                    const badge = item.querySelector('.preview-badge');
+                    if (badge && !badge.classList.contains('new-badge')) {
+                        badge.textContent = index + 1;
+                    }
+                });
+            }, 300);
+            alert('Image deleted successfully!');
+        } else {
+            alert(data.message || 'Error deleting image');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Network error. Please try again.');
     }
 }
 
@@ -761,21 +806,16 @@ function cartesianProduct(arrays) {
     );
 }
 
-// Enable drag and drop for existing variant images on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Find all existing variant cards
     document.querySelectorAll('.existing-variant').forEach(function(variantCard) {
         const variantId = variantCard.dataset.variantId;
         
         if (variantId) {
-            // Find the preview grid with existing images (not the one for new uploads)
             const previewGrids = variantCard.querySelectorAll('.variant-preview-grid');
             
-            // The first preview grid is for existing images
             if (previewGrids.length > 0) {
                 const existingImagesGrid = previewGrids[0];
                 
-                // Check if it has images
                 if (existingImagesGrid.children.length > 0) {
                     makeExistingImagesSortable(existingImagesGrid, variantId);
                 }
@@ -784,11 +824,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Special function for making existing images sortable (doesn't require file input)
 function makeExistingImagesSortable(previewGrid, variantId) {
     let draggedElement = null;
     
-    // Make items draggable
     previewGrid.querySelectorAll('.variant-preview-item').forEach((item, index) => {
         item.draggable = true;
         item.dataset.imageIndex = index;
@@ -807,7 +845,6 @@ function makeExistingImagesSortable(previewGrid, variantId) {
             e.target.classList.remove('dragging');
             e.target.style.opacity = '1';
             
-            // Update order and send to server
             updateExistingImagesOrder(previewGrid, variantId);
         }
     });
@@ -825,7 +862,6 @@ function makeExistingImagesSortable(previewGrid, variantId) {
     });
 }
 
-// Update the order of existing images and save via AJAX
 function updateExistingImagesOrder(previewGrid, variantId) {
     const items = previewGrid.querySelectorAll('.variant-preview-item');
     const newOrder = [];
@@ -836,7 +872,6 @@ function updateExistingImagesOrder(previewGrid, variantId) {
             badge.textContent = index + 1;
         }
         
-        // Extract image filename from src
         const img = item.querySelector('img');
         if (img) {
             const src = img.getAttribute('src');
@@ -845,7 +880,6 @@ function updateExistingImagesOrder(previewGrid, variantId) {
         }
     });
     
-    // Send new order to server via AJAX
     fetch('/admin/variant/reorder-images/' + variantId, {
         method: 'POST',
         headers: {
@@ -1413,6 +1447,16 @@ function updateExistingImagesOrder(previewGrid, variantId) {
     border: 4px solid #10b981;
     box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
     animation: fadeIn 0.3s ease;
+    cursor: move;
+    user-select: none;
+}
+
+.variant-preview-item:hover {
+    transform: scale(1.02);
+}
+
+.variant-preview-item.dragging {
+    opacity: 0.5;
 }
 
 @keyframes fadeIn {
@@ -1447,6 +1491,7 @@ function updateExistingImagesOrder(previewGrid, variantId) {
     justify-content: center;
     border-radius: 50%;
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 5;
 }
 
 .new-badge {
@@ -1472,6 +1517,48 @@ function updateExistingImagesOrder(previewGrid, variantId) {
 .preview-overlay i {
     color: white;
     font-size: 24px;
+}
+
+.preview-overlay i.icon-move::before {
+    content: "⇄";
+    font-size: 28px;
+    font-weight: bold;
+}
+
+/* Delete Image Button */
+.btn-delete-image {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 32px;
+    height: 32px;
+    background: #ef4444;
+    border: 2px solid white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    z-index: 10;
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+.variant-preview-item:hover .btn-delete-image {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.btn-delete-image:hover {
+    background: #dc2626;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
+}
+
+.btn-delete-image i {
+    color: white;
+    font-size: 16px;
 }
 
 /* Variant Details Section */
@@ -1545,7 +1632,7 @@ function updateExistingImagesOrder(previewGrid, variantId) {
     color: #94a3b8;
 }
 
-/* Button Styles */
+/*Button Styles */
 .tf-button.w208 {
     min-width: 208px;
     display: inline-flex;
@@ -1671,24 +1758,6 @@ input[type="file"]:focus + label,
 button:focus {
     outline: 2px solid #3b82f6;
     outline-offset: 2px;
-}
-.variant-preview-item {
-    cursor: move;
-    user-select: none;
-}
-
-.variant-preview-item:hover {
-    transform: scale(1.02);
-}
-
-.variant-preview-item.dragging {
-    opacity: 0.5;
-}
-
-.preview-overlay i.icon-move::before {
-    content: "⇄";
-    font-size: 28px;
-    font-weight: bold;
 }
 </style>
 @endpush
