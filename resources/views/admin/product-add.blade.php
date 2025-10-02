@@ -1,8 +1,7 @@
 @extends('layouts.admin')
-@section('title', 'Product Add')
+@section('title', 'Add Product')
 @section('content')
 <div class="main-content-inner">
-    <!-- main-content-wrap -->
     <div class="main-content-wrap">
         <div class="flex items-center flex-wrap justify-between gap20 mb-27">
             <h3>Add Product</h3>
@@ -12,49 +11,46 @@
                         <div class="text-tiny">Dashboard</div>
                     </a>
                 </li>
-                <li>
-                    <i class="icon-chevron-right"></i>
-                </li>
+                <li><i class="icon-chevron-right"></i></li>
                 <li>
                     <a href="{{ route('admin.products') }}">
                         <div class="text-tiny">Products</div>
                     </a>
                 </li>
-                <li>
-                    <i class="icon-chevron-right"></i>
-                </li>
+                <li><i class="icon-chevron-right"></i></li>
                 <li>
                     <div class="text-tiny">Add Product</div>
                 </li>
             </ul>
         </div>
-        <!-- form-add-product -->
+
         <form class="tf-section-2 form-add-product" method="POST" enctype="multipart/form-data" action="{{ route('admin.product.store') }}">
             @csrf
+            
+            <!-- Basic Product Information -->
             <div class="wg-box">
+                <div class="body-title mb-10">Basic Information</div>
+                
                 <fieldset class="name">
-                    <div class="body-title mb-10">Product name <span class="tf-color-1">*</span>
-                    </div>
-                    <input class="mb-10" type="text" placeholder="Enter product name" name="name" tabindex="0" value="{{ old('name') }}" aria-required="true" required="">
-                    <div class="text-tiny">Do not exceed 100 characters when entering the
-                        product name.</div>
+                    <div class="body-title mb-10">Product Name <span class="tf-color-1">*</span></div>
+                    <input class="mb-10" type="text" placeholder="e.g., iPhone 17 Pro Max" name="name" id="productName" tabindex="0" value="{{ old('name') }}" required>
+                    <div class="text-tiny">Maximum 100 characters</div>
                 </fieldset>
                 @error('name') <span class="alert alert-danger text-center">{{$message}}</span> @enderror
 
                 <fieldset class="name">
                     <div class="body-title mb-10">Slug <span class="tf-color-1">*</span></div>
-                    <input class="mb-10" type="text" placeholder="Enter product slug" name="slug" tabindex="0" value="{{ old('slug') }}" aria-required="true" required="">
-                    <div class="text-tiny">Do not exceed 100 characters when entering the product name.</div>
+                    <input class="mb-10" type="text" placeholder="e.g., iphone-17-pro-max" name="slug" id="productSlug" tabindex="0" value="{{ old('slug') }}" required>
+                    <div class="text-tiny">Auto-generated from product name</div>
                 </fieldset>
                 @error('slug') <span class="alert alert-danger text-center">{{$message}}</span> @enderror
 
                 <div class="gap22 cols">
                     <fieldset class="category">
-                        <div class="body-title mb-10">Category <span class="tf-color-1">*</span>
-                        </div>
+                        <div class="body-title mb-10">Category <span class="tf-color-1">*</span></div>
                         <div class="select">
-                            <select class="" name="category_id">
-                                <option>Choose category</option>
+                            <select name="category_id" required>
+                                <option value="">Choose Category</option>
                                 @foreach ($categories as $category)
                                 <option value="{{ $category->id }}">{{ $category->name }}</option>
                                 @endforeach
@@ -64,122 +60,80 @@
                     @error('category_id') <span class="alert alert-danger text-center">{{$message}}</span> @enderror
 
                     <fieldset class="brand">
-                        <div class="body-title mb-10">Brand <span class="tf-color-1">*</span>
-                        </div>
+                        <div class="body-title mb-10">Brand <span class="tf-color-1">*</span></div>
                         <div class="select">
-                            <select class="" name="brand_id">
-                                <option>Choose Brand</option>
+                            <select name="brand_id" required>
+                                <option value="">Choose Brand</option>
                                 @foreach ($brands as $brand)
                                 <option value="{{ $brand->id }}">{{ $brand->name }}</option>
                                 @endforeach
-
                             </select>
                         </div>
                     </fieldset>
                     @error('brand_id') <span class="alert alert-danger text-center">{{$message}}</span> @enderror
-
                 </div>
 
                 <fieldset class="shortdescription">
                     <div class="body-title mb-10">Short Description <span class="tf-color-1">*</span></div>
-                    <textarea class="mb-10 ht-150" name="short_description" placeholder="Short Description" tabindex="0" aria-required="true" required="">{{ old('short_description') }}</textarea>
-                    <div class="text-tiny">Do not exceed 100 characters when entering the product name.</div>
+                    <textarea class="mb-10 ht-150" name="short_description" placeholder="Brief product description" required>{{ old('short_description') }}</textarea>
                 </fieldset>
                 @error('short_description') <span class="alert alert-danger text-center">{{$message}}</span> @enderror
 
                 <fieldset class="description">
-                    <div class="body-title mb-10">Description <span class="tf-color-1">*</span>
-                    </div>
-                    <textarea class="mb-10" name="description" placeholder="Description" tabindex="0" aria-required="true" required="">{{ old('description') }}</textarea>
-                    <div class="text-tiny">Do not exceed 100 characters when entering the product name.</div>
+                    <div class="body-title mb-10">Description <span class="tf-color-1">*</span></div>
+                    <textarea class="mb-10 ht-200" name="description" placeholder="Detailed product description" required>{{ old('description') }}</textarea>
                 </fieldset>
                 @error('description') <span class="alert alert-danger text-center">{{$message}}</span> @enderror
             </div>
-            <div class="wg-box">
-                <fieldset>
-                    <div class="body-title">Upload images <span class="tf-color-1">*</span>
-                    </div>
-                    <div class="upload-image flex-grow">
-                        <div class="item" id="imgpreview" style="display:none">
-                            <img src="../../../localhost_8000/images/upload/upload-1.png" class="effect8" alt="">
-                        </div>
-                        <div id="upload-file" class="item up-load">
-                            <label class="uploadfile" for="myFile">
-                                <span class="icon">
-                                    <i class="icon-upload-cloud"></i>
-                                </span>
-                                <span class="body-text">Drop your images here or select <span class="tf-color">click to browse</span></span>
-                                <input type="file" id="myFile" name="image" accept="image/*">
-                            </label>
-                        </div>
-                    </div>
-                </fieldset>
-                @error('image') <span class="alert alert-danger text-center">{{$message}}</span> @enderror
 
-                <fieldset>
-                    <div class="body-title mb-10">Upload Gallery Images</div>
-                    <div class="upload-image mb-16">
-                        <!-- <div class="item">
-        <img src="images/upload/upload-1.png" alt="">
-    </div>                                                 -->
-                        <div id="galUpload" class="item up-load">
-                            <label class="uploadfile" for="gFile">
-                                <span class="icon">
-                                    <i class="icon-upload-cloud"></i>
-                                </span>
-                                <span class="text-tiny">Drop your images here or select <span class="tf-color">click to browse</span></span>
-                                <input type="file" id="gFile" name="images[]" accept="image/*"
-                                    multiple="">
-                            </label>
-                        </div>
-                    </div>
-                </fieldset>
-                @error('images') <span class="alert alert-danger text-center">{{$message}}</span> @enderror
+            <!-- Pricing & Stock -->
+            <div class="wg-box">
+                <div class="body-title mb-20">Pricing & Inventory</div>
 
                 <div class="cols gap22">
                     <fieldset class="name">
                         <div class="body-title mb-10">Regular Price <span class="tf-color-1">*</span></div>
-                        <input class="mb-10" type="text" placeholder="Enter regular price" name="regular_price" tabindex="0" value="{{ old('regular_price') }}" aria-required="true" required="">
+                        <input class="mb-10" type="number" step="0.01" placeholder="0.00" name="regular_price" value="{{ old('regular_price') }}" required>
                     </fieldset>
                     @error('regular_price') <span class="alert alert-danger text-center">{{$message}}</span> @enderror
+
                     <fieldset class="name">
                         <div class="body-title mb-10">Sale Price</div>
-                        <input class="mb-10" type="text" placeholder="Enter sale price" name="sale_price" tabindex="0" value="{{ old('sale_price') }}" aria-required="true">
+                        <input class="mb-10" type="number" step="0.01" placeholder="0.00" name="sale_price" value="{{ old('sale_price') }}">
                     </fieldset>
                     @error('sale_price') <span class="alert alert-danger text-center">{{$message}}</span> @enderror
                 </div>
 
-
                 <div class="cols gap22">
                     <fieldset class="name">
-                        <div class="body-title mb-10">SKU <span class="tf-color-1">*</span>
-                        </div>
-                        <input class="mb-10" type="text" placeholder="Enter SKU" name="SKU" tabindex="0" value="" aria-required="true" required="{{ old('SKU') }}">
+                        <div class="body-title mb-10">SKU <span class="tf-color-1">*</span></div>
+                        <input class="mb-10" type="text" placeholder="e.g., IPHONE-17PM" name="SKU" value="{{ old('SKU') }}" required>
                     </fieldset>
                     @error('SKU') <span class="alert alert-danger text-center">{{$message}}</span> @enderror
+
                     <fieldset class="name">
-                        <div class="body-title mb-10">Quantity <span class="tf-color-1">*</span>
-                        </div>
-                        <input class="mb-10" type="text" placeholder="Enter quantity" name="quantity" tabindex="0" value="{{ old('quantity') }}" aria-required="true" required="">
+                        <div class="body-title mb-10">Quantity <span class="tf-color-1">*</span></div>
+                        <input class="mb-10" type="number" placeholder="0" name="quantity" value="{{ old('quantity') }}" required>
                     </fieldset>
                     @error('quantity') <span class="alert alert-danger text-center">{{$message}}</span> @enderror
                 </div>
 
                 <div class="cols gap22">
                     <fieldset class="name">
-                        <div class="body-title mb-10">Stock</div>
+                        <div class="body-title mb-10">Stock Status</div>
                         <div class="select mb-10">
-                            <select class="" name="stock_status">
-                                <option value="instock">InStock</option>
+                            <select name="stock_status">
+                                <option value="instock">In Stock</option>
                                 <option value="outofstock">Out of Stock</option>
                             </select>
                         </div>
                     </fieldset>
                     @error('stock_status') <span class="alert alert-danger text-center">{{$message}}</span> @enderror
+
                     <fieldset class="name">
-                        <div class="body-title mb-10">Featured</div>
+                        <div class="body-title mb-10">Featured Product</div>
                         <div class="select mb-10">
-                            <select class="" name="featured">
+                            <select name="featured">
                                 <option value="0">No</option>
                                 <option value="1">Yes</option>
                             </select>
@@ -187,51 +141,1153 @@
                     </fieldset>
                     @error('featured') <span class="alert alert-danger text-center">{{$message}}</span> @enderror
                 </div>
+            </div>
+
+            <!-- Temporary Default Images (hidden fields) -->
+            <input type="hidden" name="image" value="default.jpg">
+
+            <!-- Product Variants Section - هنا الصور الحقيقية -->
+            <div class="wg-box variants-main-box" id="variantsSection">
+                <div class="variants-intro">
+                    <div class="variants-intro-icon">
+                        <i class="icon-package"></i>
+                    </div>
+                    <div class="variants-intro-content">
+                        <h4>Product Variants & Images</h4>
+                        <p><strong>This is where you upload the actual product images!</strong></p>
+                        <p>Select the available options (colors, sizes, storage, etc.), then upload specific images for each variant.</p>
+                        <div class="example-box">
+                            <strong>📱 Example: iPhone 17 Pro Max</strong>
+                            <ul>
+                                <li>✅ Select Orange → Upload 4-6 photos of the <strong>orange</strong> iPhone</li>
+                                <li>✅ Select Navy → Upload 4-6 photos of the <strong>navy</strong> iPhone</li>
+                                <li>✅ Select White → Upload 4-6 photos of the <strong>white</strong> iPhone</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-indicator">
+                    <div class="step active">
+                        <span class="step-number">1</span>
+                        <span class="step-text">Select Variants</span>
+                    </div>
+                    <div class="step-arrow">→</div>
+                    <div class="step">
+                        <span class="step-number">2</span>
+                        <span class="step-text">Generate Variants</span>
+                    </div>
+                    <div class="step-arrow">→</div>
+                    <div class="step">
+                        <span class="step-number">3</span>
+                        <span class="step-text">Upload Images</span>
+                    </div>
+                </div>
+
+                @foreach($attributes as $attribute)
+                <div class="attribute-selector mb-20" data-attribute-id="{{ $attribute->id }}">
+                    <label class="body-title mb-10">
+                        <i class="icon-tag"></i> {{ $attribute->name }}:
+                    </label>
+                    <div class="attribute-values-grid">
+                        @foreach($attribute->values as $val)
+                        <label class="attribute-checkbox-item">
+                            <input type="checkbox" 
+                                   class="attribute-value"
+                                   data-attr-id="{{ $attribute->id }}"
+                                   data-attr-name="{{ $attribute->name }}"
+                                   data-value-id="{{ $val->id }}"
+                                   data-value-text="{{ $val->value }}">
+                            <span class="checkbox-label">
+                                @if($attribute->type === 'color' && $val->color_code)
+                                    <span class="color-preview" style="background:{{ $val->color_code }}"></span>
+                                @endif
+                                {{ $val->value }}
+                            </span>
+                        </label>
+                        @endforeach
+                    </div>
+                </div>
+                @endforeach
+
+                <button type="button" class="tf-button style-1 w208" onclick="generateVariants()">
+                    <i class="icon-zap"></i> Generate Variants
+                </button>
+
+                <div id="variantsList"></div>
+            </div>
+
+            <div class="wg-box">
                 <div class="cols gap10">
-                    <button class="tf-button w-full" type="submit">Add product</button>
+                    <button class="tf-button w-full" type="submit">
+                        <i class="icon-save"></i> Add Product
+                    </button>
                 </div>
             </div>
         </form>
-        <!-- /form-add-product -->
     </div>
-    <!-- /main-content-wrap -->
 </div>
-@endsection
 
 @push('scripts')
-    <script>
-        $(function(){
-            $("#myFile").on("change", function (e) {
-                const photoInp = $("#myFile");
-                const [file] = this.files; // Use const to declare the file variable
-                if (file) {
-                    $("#imgpreview img").attr('src', URL.createObjectURL(file)); // Set the src attribute of the img
-                    $("#imgpreview").show(); // Display the preview container
-                }
-            });
+<script>
+let selectedAttributes = {};
 
-            $("#gFile").on("change", function (e) {
-                const photoInp = $("#gFile");
-                const gphotos = this.files; // Use const to declare the file variable
-                
-                $.each(gphotos,function(key,val){
-                    $("#galUpload").prepend(`<div class="item gitems"><img src="${URL.createObjectURL(val)}" /></div>`);
-                });
-                
-            });
-
-
-            $("input[name='name']").on("change",function(z){
-                $("input[name='slug']").val(StringToSlug($(this).val()));
-            });
-        });
-
-        function StringToSlug(Text) {
-        return Text.toLowerCase()
-        .replace(/[^\w\s-]/g, '')
+// Auto-generate slug from product name
+document.getElementById('productName').addEventListener('input', function(e) {
+    const name = e.target.value;
+    const slug = name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
         .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+    document.getElementById('productSlug').value = slug;
+});
+
+document.querySelectorAll('.attribute-value').forEach(cb => {
+    cb.addEventListener('change', function() {
+        const attrId = this.dataset.attrId;
+        const attrName = this.dataset.attrName;
+        const valueId = this.dataset.valueId;
+        const valueText = this.dataset.valueText;
+
+        if (!selectedAttributes[attrId]) {
+            selectedAttributes[attrId] = { name: attrName, values: [] };
         }
 
+        if (this.checked) {
+            selectedAttributes[attrId].values.push({ id: valueId, text: valueText });
+        } else {
+            selectedAttributes[attrId].values = selectedAttributes[attrId].values.filter(v => v.id != valueId);
+            if (selectedAttributes[attrId].values.length === 0) {
+                delete selectedAttributes[attrId];
+            }
+        }
+    });
+});
 
-    </script>
+function generateVariants() {
+    const validAttrs = Object.values(selectedAttributes).filter(attr => attr.values.length > 0);
+    
+    if (validAttrs.length === 0) {
+        alert('Please select at least one variant option (color, size, etc.)');
+        return;
+    }
+
+    const attrValues = validAttrs.map(attr => attr.values);
+    const combos = cartesianProduct(attrValues);
+    
+    // Update step indicator
+    document.querySelectorAll('.step').forEach((step, idx) => {
+        if (idx <= 1) step.classList.add('active');
+    });
+    
+    let html = '<div class="variants-container">';
+    html += '<div class="variants-header">';
+    html += '<div class="variants-header-content">';
+    html += '<i class="icon-check-circle"></i>';
+    html += '<div>';
+    html += '<h5>' + combos.length + ' Variant(s) Generated</h5>';
+    html += '<p>Now upload specific images for each variant below</p>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+
+    combos.forEach((combo, i) => {
+        const variantName = combo.map(v => v.text).join(' • ');
+        const attributeIds = combo.map(v => v.id).join(',');
+        const colorEmoji = getColorEmoji(combo[0].text);
+        
+        html += `
+        <div class="variant-card" id="variantCard${i}">
+            <div class="variant-header">
+                <div class="variant-header-left">
+                    <span class="variant-emoji">${colorEmoji}</span>
+                    <div>
+                        <span class="variant-label">Variant ${i + 1}</span>
+                        <h6>${variantName}</h6>
+                    </div>
+                </div>
+                <button type="button" class="btn-remove-variant" onclick="removeVariant(${i})">
+                    <i class="icon-trash-2"></i> Remove
+                </button>
+            </div>
+            
+            <div class="variant-body">
+                <div class="variant-images-main">
+                    <div class="images-header">
+                        <div>
+                            <h5><i class="icon-camera"></i> Upload Images for: ${variantName}</h5>
+                            <p class="text-tiny">Upload 1-10 high-quality images - Drag to reorder</p>
+                        </div>
+                        <span class="required-badge"><i class="icon-alert-circle"></i> Required</span>
+                    </div>
+                    
+                    <div class="variant-upload-container">
+                        <input type="file" 
+                               name="variants[${i}][images][]" 
+                               multiple 
+                               accept="image/*"
+                               class="variant-file-input"
+                               id="variantImages${i}"
+                               onchange="previewVariantImages(${i})"
+                               required>
+                        <label for="variantImages${i}" class="variant-upload-box">
+                            <div class="upload-icon">
+                                <i class="icon-upload-cloud"></i>
+                            </div>
+                            <div class="upload-content">
+                                <h6>Click to Upload Images</h6>
+                                <p>or drag and drop here</p>
+                                <span class="upload-formats">JPG, PNG, JPEG • Max 2MB each</span>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div id="variantPreview${i}" class="variant-preview-grid"></div>
+                    <div id="imageCounter${i}" class="image-counter" style="display:none;">
+                        <i class="icon-image"></i> <span class="count">0</span> image(s) uploaded
+                    </div>
+                </div>
+
+                <div class="variant-details-section">
+                    <h6 class="section-subtitle"><i class="icon-settings"></i> Variant Details</h6>
+                    <div class="variant-details-grid">
+                        <div class="variant-field">
+                            <label><i class="icon-hash"></i> SKU <span class="tf-color-1">*</span></label>
+                            <input type="text" 
+                                   name="variants[${i}][sku]" 
+                                   placeholder="e.g., IP17PM-${combo.map(v => v.text.substring(0,3).toUpperCase()).join('-')}" 
+                                   required 
+                                   class="variant-input">
+                        </div>
+                        
+                        <div class="variant-field">
+                            <label><i class="icon-dollar-sign"></i> Price Override</label>
+                            <input type="number" 
+                                   name="variants[${i}][price]" 
+                                   step="0.01" 
+                                   placeholder="Optional - uses main price"
+                                   class="variant-input">
+                        </div>
+                        
+                        <div class="variant-field">
+                            <label><i class="icon-box"></i> Stock Quantity <span class="tf-color-1">*</span></label>
+                            <input type="number" 
+                                   name="variants[${i}][quantity]" 
+                                   value="0" 
+                                   min="0" 
+                                   required
+                                   class="variant-input">
+                        </div>
+                    </div>
+                </div>
+                
+                <input type="hidden" name="variants[${i}][attributes]" value="${attributeIds}">
+            </div>
+        </div>`;
+    });
+
+    html += '</div>';
+    document.getElementById('variantsList').innerHTML = html;
+    
+    setTimeout(() => {
+        document.querySelectorAll('.step')[2].classList.add('active');
+    }, 300);
+    
+    document.getElementById('variantsList').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function getColorEmoji(colorName) {
+    const colorMap = {
+        'black': '⚫', 'white': '⚪', 'red': '🔴', 'blue': '🔵',
+        'green': '🟢', 'yellow': '🟡', 'orange': '🟠', 'purple': '🟣',
+        'brown': '🟤', 'gray': '⚫', 'pink': '🌸', 'navy': '🔵'
+    };
+    const color = colorName.toLowerCase();
+    for (let key in colorMap) {
+        if (color.includes(key)) return colorMap[key];
+    }
+    return '📦';
+}
+
+function previewVariantImages(variantIndex) {
+    const input = document.getElementById('variantImages' + variantIndex);
+    const preview = document.getElementById('variantPreview' + variantIndex);
+    const counter = document.getElementById('imageCounter' + variantIndex);
+    const uploadBox = input.nextElementSibling;
+    
+    preview.innerHTML = '';
+    
+    if (input.files && input.files.length > 0) {
+        uploadBox.classList.add('has-files');
+        counter.style.display = 'flex';
+        counter.querySelector('.count').textContent = input.files.length;
+        
+        const filesArray = Array.from(input.files);
+        const dataTransfer = new DataTransfer();
+        
+        filesArray.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const div = document.createElement('div');
+                div.className = 'variant-preview-item';
+                div.draggable = true;
+                div.dataset.fileIndex = index;
+                div.innerHTML = `
+                    <img src="${e.target.result}" alt="Image ${index + 1}">
+                    <div class="preview-badge">${index + 1}</div>
+                    <div class="preview-overlay">
+                        <i class="icon-move"></i>
+                    </div>
+                `;
+                preview.appendChild(div);
+                
+                if (index === filesArray.length - 1) {
+                    makeImagesSortable(variantIndex);
+                }
+            }
+            reader.readAsDataURL(file);
+            dataTransfer.items.add(file);
+        });
+    } else {
+        uploadBox.classList.remove('has-files');
+        counter.style.display = 'none';
+    }
+}
+
+function makeImagesSortable(variantIndex) {
+    const preview = document.getElementById('variantPreview' + variantIndex);
+    if (!preview) return;
+    
+    let draggedElement = null;
+    
+    preview.addEventListener('dragstart', function(e) {
+        if (e.target.classList.contains('variant-preview-item')) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+            e.target.style.opacity = '0.5';
+        }
+    });
+    
+    preview.addEventListener('dragend', function(e) {
+        if (e.target.classList.contains('variant-preview-item')) {
+            e.target.classList.remove('dragging');
+            e.target.style.opacity = '1';
+        }
+    });
+    
+    preview.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        const afterElement = getDragAfterElement(preview, e.clientX, e.clientY);
+        if (draggedElement) {
+            if (afterElement == null) {
+                preview.appendChild(draggedElement);
+            } else {
+                preview.insertBefore(draggedElement, afterElement);
+            }
+        }
+    });
+    
+    preview.addEventListener('drop', function() {
+        updateBadgeNumbers(variantIndex);
+        reorderFileInput(variantIndex);
+    });
+}
+
+function getDragAfterElement(container, x, y) {
+    const draggableElements = [...container.querySelectorAll('.variant-preview-item:not(.dragging)')];
+    
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offsetX = x - box.left - box.width / 2;
+        const offsetY = y - box.top - box.height / 2;
+        const offset = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
+        
+        if (offset < closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.POSITIVE_INFINITY }).element;
+}
+
+function updateBadgeNumbers(variantIndex) {
+    const preview = document.getElementById('variantPreview' + variantIndex);
+    const items = preview.querySelectorAll('.variant-preview-item');
+    items.forEach((item, index) => {
+        const badge = item.querySelector('.preview-badge');
+        if (badge && !badge.classList.contains('new-badge')) {
+            badge.textContent = index + 1;
+        }
+        item.dataset.fileIndex = index;
+    });
+}
+
+function reorderFileInput(variantIndex) {
+    const input = document.getElementById('variantImages' + variantIndex);
+    const preview = document.getElementById('variantPreview' + variantIndex);
+    const items = preview.querySelectorAll('.variant-preview-item');
+    
+    if (!input.files || input.files.length === 0) return;
+    
+    const filesArray = Array.from(input.files);
+    const newOrder = Array.from(items).map(item => parseInt(item.dataset.fileIndex));
+    const reorderedFiles = newOrder.map(index => filesArray[index]);
+    
+    const dataTransfer = new DataTransfer();
+    reorderedFiles.forEach(file => {
+        if (file) dataTransfer.items.add(file);
+    });
+    
+    input.files = dataTransfer.files;
+}
+
+function removeVariant(index) {
+    if (confirm('Remove this variant? All uploaded images and data will be lost.')) {
+        const variantCard = document.getElementById('variantCard' + index);
+        variantCard.style.opacity = '0';
+        variantCard.style.transform = 'scale(0.95)';
+        setTimeout(() => variantCard.remove(), 300);
+    }
+}
+
+function cartesianProduct(arrays) {
+    return arrays.reduce((a, b) => 
+        a.flatMap(d => b.map(e => [...d, e])), [[]]
+    );
+}
+</script>
+
+<style>
+/* Main Layout */
+.variants-main-box {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 2px solid #0ea5e9;
+}
+
+/* Variants Intro */
+.variants-intro {
+    display: flex;
+    gap: 20px;
+    padding: 25px;
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.variants-intro-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 36px;
+    flex-shrink: 0;
+    box-shadow: 0 8px 16px rgba(14, 165, 233, 0.3);
+}
+
+.variants-intro-content h4 {
+    margin: 0 0 12px 0;
+    font-size: 22px;
+    color: #0c4a6e;
+}
+
+.variants-intro-content p {
+    margin: 0 0 10px 0;
+    color: #475569;
+    line-height: 1.7;
+}
+
+.example-box {
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.example-box strong {
+    display: block;
+    margin-bottom: 10px;
+    color: #92400e;
+    font-size: 15px;
+}
+
+.example-box ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.example-box li {
+    margin: 8px 0;
+    color: #78350f;
+}
+
+/* Step Indicator */
+.step-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin: 30px 0;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.4;
+    transition: all 0.3s;
+}
+
+.step.active {
+    opacity: 1;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    background: #e2e8f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    color: #64748b;
+    transition: all 0.3s;
+}
+
+.step.active .step-number {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+}
+
+.step-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.step.active .step-text {
+    color: #0c4a6e;
+}
+
+.step-arrow {
+    font-size: 24px;
+    color: #cbd5e1;
+    font-weight: 300;
+}
+
+/* Attribute Selection */
+.attribute-values-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.attribute-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: white;
+}
+
+.attribute-checkbox-item:hover {
+    border-color: #0ea5e9;
+    background: #f0f9ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+}
+
+.attribute-checkbox-item input[type="checkbox"]:checked ~ .checkbox-label {
+    font-weight: 700;
+    color: #0284c7;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+}
+
+.color-preview {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 0 1px #cbd5e1, 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Variants Container */
+.variants-container {
+    margin-top: 30px;
+}
+
+.variants-header {
+    padding: 20px 25px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 12px 12px 0 0;
+}
+
+.variants-header-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: white;
+}
+
+.variants-header-content i {
+    font-size: 36px;
+}
+
+.variants-header h5 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.variants-header p {
+    margin: 5px 0 0 0;
+    opacity: 0.95;
+}
+
+/* Variant Card */
+.variant-card {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    margin-bottom: 25px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    transition: all 0.3s;
+}
+
+.variant-card:hover {
+    box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+}
+
+.variant-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+}
+
+.variant-header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.variant-emoji {
+    font-size: 32px;
+}
+
+.variant-label {
+    display: block;
+    font-size: 12px;
+    opacity: 0.9;
+    font-weight: 500;
+    margin-bottom: 3px;
+}
+
+.variant-header h6 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 700;
+}
+
+.btn-remove-variant {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
+}
+
+.btn-remove-variant:hover {
+    background: #ef4444;
+}
+
+.variant-body {
+    padding: 30px;
+}
+
+/* Variant Images - القسم الأهم */
+.variant-images-main {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 3px solid #3b82f6;
+    border-radius: 16px;
+    padding: 25px;
+    margin-bottom: 25px;
+}
+
+.images-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.images-header h5 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 8px 0;
+    color: #1e3a8a;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.images-header i {
+    color: #3b82f6;
+    font-size: 24px;
+}
+
+.required-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #dc2626;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+/* Upload Container */
+.variant-upload-container {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.variant-file-input {
+    display: none;
+}
+
+.variant-upload-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 30px;
+    border: 3px dashed #3b82f6;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: white;
+}
+
+.variant-upload-box:hover {
+    border-color: #2563eb;
+    background: #eff6ff;
+    transform: scale(1.02);
+}
+
+.variant-upload-box.has-files {
+    border-color: #10b981;
+    background: #d1fae5;
+    border-style: solid;
+}
+
+.upload-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+.variant-upload-box.has-files .upload-icon {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.upload-icon i {
+    font-size: 40px;
+    color: white;
+}
+
+.upload-content h6 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.upload-content p {
+    margin: 0 0 12px 0;
+    font-size: 15px;
+    color: #64748b;
+}
+
+.upload-formats {
+    display: inline-block;
+    padding: 6px 14px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 20px;
+    font-size: 12px;
+    color: #1e40af;
+    font-weight: 600;
+}
+
+/* Image Counter */
+.image-counter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: #10b981;
+    color: white;
+    border-radius: 12px;
+    font-weight: 700;
+    margin-top: 15px;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.image-counter i {
+    font-size: 20px;
+}
+
+/* Preview Grid */
+.variant-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.variant-preview-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 4px solid #10b981;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.variant-preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.preview-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    background: #10b981;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.preview-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(16, 185, 129, 0.9) 0%, transparent 100%);
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.preview-overlay i {
+    color: white;
+    font-size: 24px;
+}
+
+/* Variant Details Section */
+.variant-details-section {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 25px;
+}
+
+.section-subtitle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 20px 0;
+    font-size: 16px;
+    color: #334155;
+    font-weight: 700;
+}
+
+.section-subtitle i {
+    color: #64748b;
+    font-size: 20px;
+}
+
+.variant-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.variant-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.variant-field label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: #1e293b;
+}
+
+.variant-field label i {
+    color: #3b82f6;
+    font-size: 18px;
+}
+
+.variant-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.3s;
+    background: white;
+    font-weight: 500;
+}
+
+.variant-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    background: #eff6ff;
+}
+
+.variant-input::placeholder {
+    color: #94a3b8;
+}
+
+/* Button Styles */
+.tf-button.w208 {
+    min-width: 208px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    transition: all 0.3s;
+}
+
+.tf-button.w208:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+}
+
+.tf-button i {
+    font-size: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .variants-intro {
+        flex-direction: column;
+    }
+    
+    .step-indicator {
+        flex-wrap: wrap;
+    }
+    
+    .step-arrow {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .attribute-values-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    }
+    
+    .variant-details-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .variant-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+    
+    .btn-remove-variant {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .images-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .variant-preview-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+}
+
+@media (max-width: 576px) {
+    .variants-intro-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+    }
+    
+    .variants-intro-content h4 {
+        font-size: 18px;
+    }
+    
+    .variant-upload-box {
+        padding: 35px 20px;
+    }
+    
+    .upload-icon {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .upload-icon i {
+        font-size: 30px;
+    }
+}
+
+/* Animation for variant cards */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.variant-card {
+    animation: slideInUp 0.4s ease;
+}
+
+/* Smooth transitions */
+* {
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Focus styles for accessibility */
+input[type="checkbox"]:focus,
+input[type="file"]:focus + label,
+.variant-input:focus,
+button:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Loading state (optional enhancement) */
+.variant-upload-box.uploading {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.variant-upload-box.uploading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 4px solid #3b82f6;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+.variant-preview-item {
+    cursor: move;
+    user-select: none;
+}
+
+.variant-preview-item:hover {
+    transform: scale(1.02);
+}
+
+.variant-preview-item.dragging {
+    opacity: 0.5;
+}
+
+.preview-overlay i.icon-move::before {
+    content: "⇄";
+    font-size: 28px;
+    font-weight: bold;
+}
+</style>
 @endpush
+@endsection

@@ -299,137 +299,158 @@
           </div>
         </div>
 
-        <div class="products-grid row row-cols-2 row-cols-md-3" id="products-grid">
-        @foreach ($products as $product)
-          <div class="product-card-wrapper">
-            <div class="product-card mb-3 mb-md-4 mb-xxl-5">
-              <div class="pc__img-wrapper">
-                <div class="swiper-container background-img js-swiper-slider" data-settings='{"resizeObserver": true}'>
-                  <div class="swiper-wrapper">
-                    <div class="swiper-slide">
-                      <a href="{{ route('shop.product.details', ['product_slug'=>$product->slug]) }}"><img loading="lazy" src="{{ asset('uploads/products') }}/{{ $product->image }}" width="330" height="400" alt="{{ $product->image }}" class="pc__img"></a>
-                    </div>
-                    @foreach ( explode(',',$product->images) as $gimg )
-                    <div class="swiper-slide">
-                      <a href="{{ route('shop.product.details', ['product_slug'=>$product->slug]) }}"><img loading="lazy" src="{{ asset('uploads/products') }}/{{ trim($gimg) }}" width="330" height="400" alt="{{ $product->image }}" class="pc__img"></a>
-                    </div>
-                    @endforeach
-                  </div>
-                  <span class="pc__img-prev"><svg width="7" height="11" viewBox="0 0 7 11"
-                      xmlns="http://www.w3.org/2000/svg">
-                      <use href="#icon_prev_sm" />
-                    </svg></span>
-                  <span class="pc__img-next"><svg width="7" height="11" viewBox="0 0 7 11"
-                      xmlns="http://www.w3.org/2000/svg">
-                      <use href="#icon_next_sm" />
-                    </svg></span>
-                </div>
-               @php
-                    $cartItem = null;
-                    if (auth()->check()) {
-                        $cartItem = \App\Models\Cart::where('user_id', auth()->id())
-                                        ->where('product_id', $product->id)
-                                        ->first();
-                    }
-                @endphp
+       <div class="products-grid row row-cols-2 row-cols-md-3" id="products-grid">
+ @foreach ($products as $product)
+ <div class="product-card-wrapper">
+   <div class="product-card mb-3 mb-md-4 mb-xxl-5" data-product-id="{{ $product->id }}">
+     <div class="pc__img-wrapper">
+       <div class="swiper-container background-img js-swiper-slider" data-settings='{"resizeObserver": true}'>
+         <div class="swiper-wrapper" id="swiper-{{ $product->id }}">
+           <div class="swiper-slide">
+             <a href="{{ route('shop.product.details', ['product_slug'=>$product->slug]) }}">
+               <img loading="lazy" src="{{ asset('uploads/products') }}/{{ $product->image }}"
+                    width="330" height="400" alt="{{ $product->name }}" class="pc__img">
+             </a>
+           </div>
+           @if($product->images)
+           @foreach (explode(',', $product->images) as $gimg)
+           <div class="swiper-slide">
+             <a href="{{ route('shop.product.details', ['product_slug'=>$product->slug]) }}">
+               <img loading="lazy" src="{{ asset('uploads/products') }}/{{ trim($gimg) }}"
+                    width="330" height="400" alt="{{ $product->name }}" class="pc__img">
+             </a>
+           </div>
+           @endforeach
+           @endif
+         </div>
+         <span class="pc__img-prev"><svg width="7" height="11" viewBox="0 0 7 11" xmlns="http://www.w3.org/2000/svg">
+           <use href="#icon_prev_sm" /></svg></span>
+         <span class="pc__img-next"><svg width="7" height="11" viewBox="0 0 7 11" xmlns="http://www.w3.org/2000/svg">
+           <use href="#icon_next_sm" /></svg></span>
+       </div>
 
-                @if (auth()->check())
-                    <button 
-                        class="cart-btn pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium js-cart-toggle {{ $cartItem ? 'filled' : '' }}" 
-                        data-product-id="{{ $product->id }}"
-                        data-name="{{ $product->name }}"
-                        data-price="{{ $product->sale_price ?: $product->regular_price }}"
-                        data-action="{{ $cartItem ? 'remove' : 'add' }}"
-                        data-row-id="{{ $cartItem->id ?? '' }}"
-                        title="{{ $cartItem ? 'Remove from Cart' : 'Add to Cart' }}"
-                    >
-                        {{ $cartItem ? 'Remove from Cart' : 'Add To Cart' }}
-                    </button>
-                @else
-                    <a href="{{ route('login') }}"
-                        class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium"
-                        title="Please login to add to cart"
-                    >
-                        Add To Cart
-                    </a>
-                @endif
+       @php
+         $cartItem = null;
+         if (auth()->check()) {
+           $cartItem = \App\Models\Cart::where('user_id', auth()->id())
+                         ->where('product_id', $product->id)
+                         ->first();
+         }
+       @endphp
 
-              </div>
+       @if (auth()->check())
+         <button
+           class="cart-btn pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium js-cart-toggle {{ $cartItem ? 'filled' : '' }}"
+           data-product-id="{{ $product->id }}"
+           data-name="{{ $product->name }}"
+           data-price="{{ $product->sale_price ?: $product->regular_price }}"
+           data-action="{{ $cartItem ? 'remove' : 'add' }}"
+           data-row-id="{{ $cartItem->id ?? '' }}"
+           title="{{ $cartItem ? 'Remove from Cart' : 'Add to Cart' }}">
+           {{ $cartItem ? 'Remove from Cart' : 'Add To Cart' }}
+         </button>
+       @else
+         <a href="{{ route('login') }}"
+           class="pc__atc btn anim_appear-bottom btn position-absolute border-0 text-uppercase fw-medium"
+           title="Please login to add to cart">Add To Cart</a>
+       @endif
+     </div>
 
-              <div class="pc__info position-relative">
-                <p class="pc__category">{{$product->category->name}}</p>
-                <h6 class="pc__title"><a href="{{ route('shop.product.details', ['product_slug'=>$product->slug]) }}">{{$product->name}}</a></h6>
-                <div class="product-card__price d-flex">
-                  <span class="money price">
-                    @if ($product->sale_price)
-                        <s>${{$product->regular_price}}</s> ${{$product->sale_price}}
-                    @else
-                    ${{$product->regular_price}}
-                    @endif
-                  </span>
-                </div>
-                <div class="product-card__review d-flex align-items-center">
-                  <div class="reviews-group d-flex">
-                    <svg class="review-star" viewBox="0 0 9 9" xmlns="http://www.w3.org/2000/svg">
-                      <use href="#icon_star" />
-                    </svg>
-                    <svg class="review-star" viewBox="0 0 9 9" xmlns="http://www.w3.org/2000/svg">
-                      <use href="#icon_star" />
-                    </svg>
-                    <svg class="review-star" viewBox="0 0 9 9" xmlns="http://www.w3.org/2000/svg">
-                      <use href="#icon_star" />
-                    </svg>
-                    <svg class="review-star" viewBox="0 0 9 9" xmlns="http://www.w3.org/2000/svg">
-                      <use href="#icon_star" />
-                    </svg>
-                    <svg class="review-star" viewBox="0 0 9 9" xmlns="http://www.w3.org/2000/svg">
-                      <use href="#icon_star" />
-                    </svg>
-                  </div>
-                  <span class="reviews-note text-lowercase text-secondary ms-1">8k+ reviews</span>
-                </div>
+     <div class="pc__info position-relative">
+       <div class="d-flex align-items-center justify-content-between mb-1">
+         <p class="pc__category mb-0">{{ $product->category->name }}</p>
+       </div>
 
-                @php
-                  $wishlistItem = null;
-                  if (auth()->check()) {
-                      $wishlistItem = \App\Models\Wishlist::where('user_id', auth()->id())
-                                      ->where('product_id', $product->id)
-                                      ->first();
-                  }
-              @endphp
-              
-              @if (auth()->check())
-              <button 
-                  class="wishlist-btn position-absolute top-0 end-0 bg-transparent border-0 js-wishlist-toggle {{ $wishlistItem ? 'filled' : '' }}" 
-                  data-product-id="{{ $product->id }}"
-                  data-name="{{ $product->name }}"
-                  data-price="{{ $product->sale_price ?: $product->regular_price }}"
-                  data-action="{{ $wishlistItem ? 'remove' : 'add' }}"
-                  data-row-id="{{ $wishlistItem->id ?? '' }}"
-                  title="{{ $wishlistItem ? 'Remove from Wishlist' : 'Add to Wishlist' }}"
-              >
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                      <use href="#icon_heart" />
-                  </svg>
-              </button>
-              @else
-                  <a href="{{ route('login') }}"
-                      class="wishlist-btn position-absolute top-0 end-0 bg-transparent border-0"
-                      title="Please login to add to wishlist"
-                  >
-                      <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-                          <use href="#icon_heart" />
-                      </svg>
-                  </a>
-              @endif
+       <h6 class="pc__title">
+         <a href="{{ route('shop.product.details', ['product_slug'=>$product->slug]) }}">{{ $product->name }}</a>
+       </h6>
 
-              </div>
-            </div>
-          </div>
-        @endforeach
-        
-          
-        </div>
+       {{-- Colors Section - moved under title --}}
+       @if($product->variants->count() > 0)
+         @php
+           $uniqueColors = $product->variants->map(function($variant) {
+             return $variant->attributeValues->where('attribute.type', 'color')->first();
+           })->filter()->unique('id');
+         @endphp
+
+         @if($uniqueColors->count() > 0)
+           <div class="product-color-variants-inline d-flex align-items-center gap-1 mt-2">
+             @foreach($uniqueColors->take(4) as $colorValue)
+               <button
+                 class="color-variant-btn-small"
+                 data-product-id="{{ $product->id }}"
+                 data-color-id="{{ $colorValue->id }}"
+                 data-color-name="{{ $colorValue->value }}"
+                 style="background: {{ $colorValue->color_code ?? '#ccc' }};"
+                 title="{{ $colorValue->value }}">
+               </button>
+             @endforeach
+             @if($uniqueColors->count() > 4)
+               <span class="color-more-text">+{{ $uniqueColors->count() - 4 }}</span>
+             @endif
+           </div>
+         @endif
+       @endif
+
+       <div class="product-card__price d-flex mt-2">
+         <span class="money price">
+           @if ($product->sale_price)
+             <s>${{ $product->regular_price }}</s> ${{ $product->sale_price }}
+           @else
+             ${{ $product->regular_price }}
+           @endif
+         </span>
+       </div>
+
+       <div class="product-card__review d-flex align-items-center">
+         <div class="reviews-group d-flex">
+           <svg class="review-star" viewBox="0 0 9 9" xmlns="http://www.w3.org/2000/svg"><use href="#icon_star" /></svg>
+           <svg class="review-star" viewBox="0 0 9 9" xmlns="http://www.w3.org/2000/svg"><use href="#icon_star" /></svg>
+           <svg class="review-star" viewBox="0 0 9 9" xmlns="http://www.w3.org/2000/svg"><use href="#icon_star" /></svg>
+           <svg class="review-star" viewBox="0 0 9 9" xmlns="http://www.w3.org/2000/svg"><use href="#icon_star" /></svg>
+           <svg class="review-star" viewBox="0 0 9 9" xmlns="http://www.w3.org/2000/svg"><use href="#icon_star" /></svg>
+         </div>
+         <span class="reviews-note text-lowercase text-secondary ms-1">8k+ reviews</span>
+       </div>
+
+       @php
+         $wishlistItem = null;
+         if (auth()->check()) {
+           $wishlistItem = \App\Models\Wishlist::where('user_id', auth()->id())
+                           ->where('product_id', $product->id)
+                           ->first();
+         }
+       @endphp
+
+       @if (auth()->check())
+         <button
+           class="wishlist-btn position-absolute top-0 end-0 bg-transparent border-0 js-wishlist-toggle {{ $wishlistItem ? 'filled' : '' }}"
+           data-product-id="{{ $product->id }}"
+           data-name="{{ $product->name }}"
+           data-price="{{ $product->sale_price ?: $product->regular_price }}"
+           data-action="{{ $wishlistItem ? 'remove' : 'add' }}"
+           data-row-id="{{ $wishlistItem->id ?? '' }}"
+           title="{{ $wishlistItem ? 'Remove from Wishlist' : 'Add to Wishlist' }}">
+           <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+             <use href="#icon_heart" />
+           </svg>
+         </button>
+       @else
+         <a href="{{ route('login') }}"
+           class="wishlist-btn position-absolute top-0 end-0 bg-transparent border-0"
+           title="Please login to add to wishlist">
+           <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+             <use href="#icon_heart" />
+           </svg>
+         </a>
+       @endif
+     </div>
+   </div>
+ </div>
+ @endforeach
+</div>
+
+       
 
         <!-- <nav class="shop-pages d-flex justify-content-between mt-3" aria-label="Page navigation">
           <a href="#" class="btn-link d-inline-flex align-items-center">
@@ -695,4 +716,467 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+<script>
+  // Color Variant Image Switching
+// Color Variant Image Switching - Fixed version
+document.addEventListener('DOMContentLoaded', function() {
+    // Track swiper instances
+    const swiperInstances = new Map();
+    
+    document.querySelectorAll('.color-variant-btn-small').forEach(button => {
+        button.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const productId = this.dataset.productId;
+            const colorId = this.dataset.colorId;
+            const colorName = this.dataset.colorName;
+            
+            // Remove active class from siblings
+            const siblings = this.parentElement.querySelectorAll('.color-variant-btn-small');
+            siblings.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Get elements
+            const productCard = this.closest('.product-card');
+            const swiperContainer = productCard.querySelector('.swiper-container');
+            const swiperWrapper = productCard.querySelector('.swiper-wrapper');
+            const imgWrapper = productCard.querySelector('.pc__img-wrapper');
+            
+            if (!swiperWrapper || !swiperContainer) return;
+            
+            // Prevent interaction during loading
+            swiperContainer.classList.add('loading');
+            
+            // Add loading overlay
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'color-loading-overlay';
+            loadingOverlay.innerHTML = '<div class="spinner"></div>';
+            imgWrapper.appendChild(loadingOverlay);
+            
+            try {
+                // Fetch variant images
+                const response = await fetch(`/api/product-variant-images/${productId}/${colorId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data.images && data.images.length > 0) {
+                        // Destroy existing swiper instance if exists
+                        if (swiperContainer.swiper) {
+                            swiperContainer.swiper.destroy(true, true);
+                        }
+                        
+                        // Clear existing slides
+                        swiperWrapper.innerHTML = '';
+                        
+                        // Add new slides
+                        data.images.forEach((image, index) => {
+                            const slide = document.createElement('div');
+                            slide.className = 'swiper-slide';
+                            slide.innerHTML = `
+                                <a href="${data.productUrl}">
+                                    <img loading="lazy" 
+                                         src="/uploads/products/${image}" 
+                                         width="330" 
+                                         height="400" 
+                                         alt="${data.productName} - ${colorName}" 
+                                         class="pc__img">
+                                </a>
+                            `;
+                            swiperWrapper.appendChild(slide);
+                        });
+                        
+                        // Small delay to ensure DOM is ready
+                        setTimeout(() => {
+                            // Reinitialize Swiper
+                            if (typeof Swiper !== 'undefined') {
+                                const newSwiper = new Swiper(swiperContainer, {
+                                    resizeObserver: true,
+                                    slidesPerView: 1,
+                                    navigation: {
+                                        nextEl: swiperContainer.querySelector('.pc__img-next'),
+                                        prevEl: swiperContainer.querySelector('.pc__img-prev'),
+                                    },
+                                    on: {
+                                        init: function() {
+                                            swiperContainer.classList.remove('loading');
+                                        }
+                                    }
+                                });
+                                
+                                // Store instance for later
+                                swiperInstances.set(productId, newSwiper);
+                            } else {
+                                swiperContainer.classList.remove('loading');
+                            }
+                        }, 100);
+                        
+                        // Show success feedback
+                        showColorToast(`Showing ${colorName}`, false);
+                    } else {
+                        swiperContainer.classList.remove('loading');
+                        showColorToast('No images for this color', true);
+                    }
+                } else {
+                    swiperContainer.classList.remove('loading');
+                    showColorToast('Failed to load images', true);
+                }
+            } catch (error) {
+                console.error('Error fetching variant images:', error);
+                swiperContainer.classList.remove('loading');
+                showColorToast('Network error', true);
+            } finally {
+                // Remove loading overlay
+                setTimeout(() => {
+                    if (loadingOverlay.parentNode) {
+                        loadingOverlay.remove();
+                    }
+                }, 300);
+            }
+        });
+    });
+  
+
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const swiperInstances = new Map();
+
+    document.querySelectorAll('.color-variant-btn-small').forEach(button => {
+        button.addEventListener('click', async function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const productId = this.dataset.productId;
+            const colorId = this.dataset.colorId;
+            const colorName = this.dataset.colorName;
+
+            // Remove active from siblings
+            const siblings = this.parentElement.querySelectorAll('.color-variant-btn-small');
+            siblings.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+
+            const productCard = this.closest('.product-card');
+            const swiperContainer = productCard.querySelector('.swiper-container');
+            const swiperWrapper = productCard.querySelector('.swiper-wrapper');
+            const imgWrapper = productCard.querySelector('.pc__img-wrapper');
+
+            if (!swiperWrapper || !swiperContainer) return;
+            swiperContainer.classList.add('loading');
+
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'color-loading-overlay';
+            loadingOverlay.innerHTML = '<div class="spinner"></div>';
+            imgWrapper.appendChild(loadingOverlay);
+
+            try {
+                const response = await fetch(`/api/product-variant-images/${productId}/${colorId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    if (data.images && data.images.length > 0) {
+                        if (swiperContainer.swiper) {
+                            swiperContainer.swiper.destroy(true, true);
+                        }
+                        swiperWrapper.innerHTML = '';
+
+                        data.images.forEach((image) => {
+                            const slide = document.createElement('div');
+                            slide.className = 'swiper-slide';
+                            slide.innerHTML = `
+                                <a href="${data.productUrl}">
+                                    <img loading="lazy" 
+                                         src="/uploads/products/${image}" 
+                                         width="330" 
+                                         height="400" 
+                                         alt="${data.productName} - ${colorName}" 
+                                         class="pc__img">
+                                </a>
+                            `;
+                            swiperWrapper.appendChild(slide);
+                        });
+
+                        setTimeout(() => {
+                            if (typeof Swiper !== 'undefined') {
+                                const newSwiper = new Swiper(swiperContainer, {
+                                    resizeObserver: true,
+                                    slidesPerView: 1,
+                                    navigation: {
+                                        nextEl: swiperContainer.querySelector('.pc__img-next'),
+                                        prevEl: swiperContainer.querySelector('.pc__img-prev'),
+                                    },
+                                    on: {
+                                        init: function() {
+                                            swiperContainer.classList.remove('loading');
+                                        }
+                                    }
+                                });
+                                swiperInstances.set(productId, newSwiper);
+                            } else {
+                                swiperContainer.classList.remove('loading');
+                            }
+                        }, 100);
+
+                        // ✅ هنا يظهر التوست مرة وحدة فقط
+                        showColorToast(`Showing ${colorName}`, this.style.background);
+                    } else {
+                        swiperContainer.classList.remove('loading');
+                        showColorToast('No images for this color', null, true);
+                    }
+                } else {
+                    swiperContainer.classList.remove('loading');
+                    showColorToast('Failed to load images', null, true);
+                }
+            } catch (error) {
+                console.error('Error fetching variant images:', error);
+                swiperContainer.classList.remove('loading');
+                showColorToast('Network error', null, true);
+            } finally {
+                setTimeout(() => {
+                    if (loadingOverlay.parentNode) {
+                        loadingOverlay.remove();
+                    }
+                }, 300);
+            }
+        });
+    });
+
+    // دالة لتعديل درجة اللون (أفتح أو أغمق)
+    function adjustColor(color, amount) {
+        const ctx = document.createElement("canvas").getContext("2d");
+        ctx.fillStyle = color;
+        const hex = ctx.fillStyle;
+
+        let r = parseInt(hex.substr(1, 2), 16);
+        let g = parseInt(hex.substr(3, 2), 16);
+        let b = parseInt(hex.substr(5, 2), 16);
+
+        r = Math.min(255, Math.max(0, r + amount));
+        g = Math.min(255, Math.max(0, g + amount));
+        b = Math.min(255, Math.max(0, b + amount));
+
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    // دالة تحدد النص أغمق أو أفتح حسب الخلفية
+    function getTextColor(bgColor) {
+        const ctx = document.createElement("canvas").getContext("2d");
+        ctx.fillStyle = bgColor;
+        const hex = ctx.fillStyle;
+
+        const r = parseInt(hex.substr(1, 2), 16);
+        const g = parseInt(hex.substr(3, 2), 16);
+        const b = parseInt(hex.substr(5, 2), 16);
+
+        const luma = 0.2126*r + 0.7152*g + 0.0722*b;
+        return luma < 128 ? adjustColor(bgColor, 120) : adjustColor(bgColor, -120);
+    }
+
+    // Toast notification function
+    function showColorToast(message, colorCode = null, isError = false) {
+        document.querySelectorAll('.color-toast').forEach(t => t.remove());
+
+        const toast = document.createElement('div');
+        toast.innerText = message;
+
+        if (colorCode) {
+            toast.className = "color-toast";
+            toast.style.background = colorCode;   
+            toast.style.color = getTextColor(colorCode); 
+        } else {
+            toast.className = `color-toast ${isError ? 'error' : 'success'}`;
+        }
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => toast.classList.add('show'), 100);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 2000);
+    }
+});
+</script>
+
+
+<style>
+/* Color Variants Inline with Category - Professional Style */
+.product-color-variants-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.color-variant-btn-small {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  padding: 0;
+  background-clip: padding-box;
+  box-shadow: 0 0 0 1px #d1d5db, 0 1px 2px rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+
+.color-variant-btn-small:hover {
+  transform: scale(1.25);
+  box-shadow: 0 0 0 2px #4062B1, 0 2px 4px rgba(64, 98, 177, 0.3);
+  z-index: 2;
+}
+
+.color-variant-btn-small.active {
+  border-color: #4062B1;
+  border-width: 2px;
+  box-shadow: 0 0 0 1px #fff, 0 0 0 3px #4062B1;
+  transform: scale(1.15);
+}
+
+.color-variant-btn-small.active::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+.color-more-text {
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 500;
+  margin-left: 2px;
+}
+
+.pc__category {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Loading overlay - Fixed for swiper issue */
+.color-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  border-radius: 8px;
+}
+
+.color-loading-overlay .spinner {
+  width: 35px;
+  height: 35px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #4062B1;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Toast notification */
+.color-toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: #4062B1;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.color-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.color-toast.error {
+  background: #dc3545;
+}
+
+.color-toast.success {
+  background: #10b981;
+}
+
+/* Swiper fixes for color switching */
+.swiper-container.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .color-variant-btn-small {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .pc__category {
+    font-size: 12px;
+  }
+  
+  .color-more-text {
+    font-size: 10px;
+  }
+  
+  .color-toast {
+    bottom: 20px;
+    right: 20px;
+    left: 20px;
+    text-align: center;
+    font-size: 12px;
+  }
+}
+
+/* Hover effect on product card */
+.product-card:hover .color-variant-btn-small {
+  opacity: 1;
+  visibility: visible;
+}
+
+.color-variant-btn-small {
+  opacity: 0.85;
+  transition: all 0.2s ease;
+}
+</style>
 @endpush

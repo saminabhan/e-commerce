@@ -71,6 +71,11 @@
                                                 <div class="text">Add Product</div>
                                             </a>
                                         </li>
+                                         <li class="sub-menu-item">
+                                            <a href="{{ route('admin.attributes') }}" class="">
+                                                <div class="text">Product Attributes</div>
+                                            </a>
+                                        </li>
                                         <li class="sub-menu-item">
                                             <a href="{{ route('admin.products') }}" class="">
                                                 <div class="text">Products</div>

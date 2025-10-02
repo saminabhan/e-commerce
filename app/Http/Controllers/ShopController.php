@@ -60,9 +60,63 @@ class ShopController extends Controller
         return view('shop',compact('products','size','order','brands','f_brands','categories','f_categories','min_price','max_price'));
     }
 
-    public function product_details($product_slug){
-        $product = Product::where('slug',$product_slug)->first();
-        $rproducts = Product::where('slug','<>',$product_slug)->get()->take(8);
-        return view('details',compact('product','rproducts'));
+public function product_details($product_slug)
+{
+    $product = Product::where('slug', $product_slug)
+        ->with([
+            'variants' => function($query) {
+                $query->with(['attributeValues' => function($q) {
+                    $q->with('attribute');
+                }]);
+            },
+            'category',
+            'brand'
+        ])
+        ->firstOrFail();
+    
+    $rproducts = Product::where('slug', '!=', $product_slug)
+        ->where('category_id', $product->category_id)
+        ->inRandomOrder()
+        ->take(8)
+        ->get();
+    
+    return view('details', compact('product', 'rproducts'));
+}
+public function getVariantImages($productId, $colorId)
+{
+    try {
+        $product = Product::findOrFail($productId);
+        
+        // Find variant with this color
+        $variant = $product->variants()
+            ->whereHas('attributeValues', function($query) use ($colorId) {
+                $query->where('attribute_value_id', $colorId);
+            })
+            ->first();
+        
+        if (!$variant || !$variant->images) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No images found for this variant'
+            ], 404);
+        }
+        
+        $images = explode(',', $variant->images);
+        $images = array_map('trim', $images);
+        
+        return response()->json([
+            'success' => true,
+            'images' => $images,
+            'productName' => $product->name,
+            'productUrl' => route('shop.product.details', ['product_slug' => $product->slug])
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error fetching variant images'
+        ], 500);
     }
+}
+
 }

@@ -68,6 +68,7 @@ Route::post('/search/ajax', [HomeController::class, 'ajaxSearch'])->name('search
 // routes للمنتجات
 Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
 Route::get('/shop/{product_slug}', [ShopController::class, 'product_details'])->name('shop.product.details');
+Route::get('/api/product-variant-images/{productId}/{colorId}', [ShopController::class, 'getVariantImages']);
 
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/add', [CartController::class, 'add_to_cart'])->name('cart.add');
@@ -138,6 +139,7 @@ Route::middleware(['auth', AuthAdmin::class])->group(function(){
     Route::get('/admin/product/{id}/edit', [AdminController::class, 'product_edit'])->name('admin.product.edit');
     Route::put('/admin/product/update', [AdminController::class, 'product_update'])->name('admin.product.update');
     Route::delete('/admin/product/{id}/delete', [AdminController::class, 'product_delete'])->name('admin.product.delete');
+    Route::post('/admin/variant/reorder-images/{id}', [AdminController::class, 'reorderVariantImages'])->name('admin.variant.reorder-images');
 
     Route::get('/admin/settings', [AdminController::class, 'settings'])->name('admin.settings');
     Route::put('/admin/settings/account/details/update', [AdminController::class, 'updateDetails'])->name('admin.update.details');
@@ -152,6 +154,12 @@ Route::middleware(['auth', AuthAdmin::class])->group(function(){
         'create' => 'admin.order-tracking.create',
         'store' => 'admin.order-tracking.store',
     ]);
+
+        Route::get('/admin/attributes', [AdminController::class, 'attributes'])->name('admin.attributes');
+Route::post('/attributes/store', [AdminController::class, 'attribute_store'])->name('admin.attributes.store');
+Route::post('/attributes/value/store', [AdminController::class, 'attribute_value_store'])->name('admin.attributes.value.store');
+Route::delete('/attributes/{id}', [AdminController::class, 'attribute_delete'])->name('admin.attributes.delete');
+Route::delete('/attributes/value/{id}', [AdminController::class, 'attribute_value_delete'])->name('admin.attributes.value.delete');
 
     Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
         Route::resource('slider', SliderController::class)->names('slider');

@@ -23,6 +23,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
         integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw=="
         crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
     @stack('styles')
       <style>
 .search-suggestions {
@@ -118,6 +120,32 @@
         width: 35px;
         height: 35px;
     }
+}
+/* أنيميشن الفتح */
+.user-dropdown {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.25s ease;
+}
+
+/* عند الفتح */
+.show.user-dropdown {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* تحسينات شكل العناصر */
+.user-dropdown .dropdown-item {
+    padding: 8px 14px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.user-dropdown .dropdown-item:hover {
+    background-color: #f5f7fa;
+}
+.user-dropdown .dropdown-item i {
+    font-size: 1.1rem;
 }
 </style>
 
@@ -372,28 +400,52 @@
         </a>
       </div>
 
-       <div class="d-flex align-items-center">
-      @guest
-      <a href="{{route('login')}}" class="header-tools__item me-2">
-        <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none"
-          xmlns="http://www.w3.org/2000/svg">
-          <use href="#icon_user" />
-        </svg>
-      </a>
-      @else
-      <a href="{{ Auth::user()->utype === 'ADM' ? route('admin.index'): route('user.index') }}" class="header-tools__item me-2">
-      <span class="pr-6px">
-       Hi, {{ explode(' ', ucfirst(Auth::user()->name))[0] }}!&nbsp;
-      </span>
+      <div class="d-flex align-items-center">
+    @guest
+        <a href="{{ route('login') }}" class="header-tools__item me-2">
+            <svg class="d-block" width="22" height="22" viewBox="0 0 20 20" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
+                <use href="#icon_user" />
+            </svg>
+        </a>
+    @else
+        <div class="dropdown">
+            <a href="#" class="header-tools__item me-2 d-flex align-items-center dropdown-toggle"
+               id="mobileUserMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                <svg class="d-block" width="22" height="22" viewBox="0 0 20 20" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <use href="#icon_user" />
+                </svg>
+            </a>
 
-        <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none"
-          xmlns="http://www.w3.org/2000/svg">
-          <use href="#icon_user" />
-        </svg>
-      </a>
-      @endguest
-      </a>
-    </div>
+            <ul class="dropdown-menu dropdown-menu-end user-dropdown mt-2" aria-labelledby="mobileUserMenu">
+                <li class="px-3 py-2 text-muted small">
+                    Hi, {{ explode(' ', ucfirst(Auth::user()->name))[0] }}
+                </li>
+                <li><hr class="dropdown-divider"></li>
+
+                @if(Auth::user()->utype === 'ADM')
+                    <li><a class="dropdown-item" href="{{ route('admin.index') }}"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
+                @else
+                    <li><a class="dropdown-item" href="{{ route('user.index') }}"><i class="bi bi-person me-2"></i> My Account</a></li>
+                @endif
+
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item text-danger" href="{{ route('logout') }}"
+                       onclick="event.preventDefault(); document.getElementById('mobile-logout-form').submit();">
+                        <i class="bi bi-box-arrow-right me-2"></i> Logout
+                    </a>
+                </li>
+            </ul>
+
+            <form id="mobile-logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                @csrf
+            </form>
+        </div>
+    @endguest
+</div>
+
       <a href="{{ route('cart.index') }}" class="header-tools__item header-tools__cart">
   <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
     <use href="#icon_cart" />
@@ -592,26 +644,47 @@
             </div>
           </div>
 
-         @guest
-          <div class="header-tools__item hover-container">
-            <a href="{{route('login')}}" class="header-tools__item">
-              <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none"
+        @guest
+    <div class="header-tools__item hover-container">
+        <a href="{{ route('login') }}" class="header-tools__item">
+            <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none"
                 xmlns="http://www.w3.org/2000/svg">
                 <use href="#icon_user" />
-              </svg>
-            </a>
-          </div>
-          @else
-          <div class="header-tools__item hover-container">
-            <a href="{{ Auth::user()->utype === 'ADM' ? route('admin.index'): route('user.index') }}" class="header-tools__item">
-              <span class="pr-6px">Hi, {{ucfirst(Auth::user()->name)}}!&nbsp;</span>
-              <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none"
+            </svg>
+        </a>
+    </div>
+@else
+    <div class="header-tools__item hover-container dropdown">
+        <a href="#" class="header-tools__item d-flex align-items-center dropdown-toggle" 
+           id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="pr-6px">Hi, {{ ucfirst(Auth::user()->name) }}!&nbsp;</span>
+            <svg class="d-block" width="20" height="20" viewBox="0 0 20 20" fill="none"
                 xmlns="http://www.w3.org/2000/svg">
                 <use href="#icon_user" />
-              </svg>
-            </a>
-          </div>  
-          @endguest 
+            </svg>
+        </a>
+
+        <ul class="dropdown-menu dropdown-menu-end user-dropdown mt-2" aria-labelledby="userMenu">
+            @if(Auth::user()->utype === 'ADM')
+                <li><a class="dropdown-item" href="{{ route('admin.index') }}"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
+            @else
+                <li><a class="dropdown-item" href="{{ route('user.index') }}"><i class="bi bi-person me-2"></i> My Account</a></li>
+            @endif
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item text-danger" href="{{ route('logout') }}"
+                   onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                     <i class="bi bi-box-arrow-right me-2"></i> Logout
+                </a>
+            </li>
+        </ul>
+
+        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+            @csrf
+        </form>
+    </div>
+@endguest
+ 
 
           <a href="{{ route('wishlist.index') }}" class="header-tools__item header-tools__cart">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
