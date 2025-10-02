@@ -142,18 +142,18 @@
     color: white;
     border: none;
     border-radius: 50%;
-    width: 18px;       /* حجم صغير */
+    width: 18px;
     height: 18px;
     cursor: pointer;
-    font-size: 12px;   /* حجم الأيقونة أو النص */
-    display: flex;     /* توسيط */
+    font-size: 12px;
+    display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;        /* يشيل الفراغات الداخلية */
+    padding: 0;
     line-height: 1;
 }
 .btn-delete:hover {
-    background: #cc0000; /* أغمق عند الهوفر */
+    background: #cc0000;
 }
 
 .modal {
